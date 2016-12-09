@@ -39,4 +39,4 @@ def bc_read_data(data_folder):
       # print('%d %s : %f' % (i, fname, angle))
       # if i > 20: break
 
-  return X_data, y_data
+  return X_data, np.asarray(y_data)

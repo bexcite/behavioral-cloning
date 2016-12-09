@@ -12,6 +12,8 @@ from PIL import ImageOps
 from flask import Flask, render_template
 from io import BytesIO
 
+from sdc_utils import normalize
+
 from keras.models import model_from_json
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array
 
@@ -35,12 +37,14 @@ def telemetry(sid, data):
     image_array = np.asarray(image)
     transformed_image_array = image_array[None, :, :, :]
 
-    print('shape =', transformed_image_array.shape)
+    norm_image_array = normalize(transformed_image_array)
+
+    # print('image_array =', norm_image_array)
 
     # This model currently assumes that the features of the model are just the images. Feel free to change this.
-    # steering_angle = float(model.predict(transformed_image_array, batch_size=1))
+    steering_angle = float(model.predict(norm_image_array, batch_size=1))
 
-    steering_angle = 0
+    # steering_angle = 0
 
 
 
@@ -66,18 +70,19 @@ def send_control(steering_angle, throttle):
 if __name__ == '__main__':
     print("Hello ")
 
-    '''
+
     parser = argparse.ArgumentParser(description='Remote Driving')
     parser.add_argument('model', type=str,
     help='Path to model definition json. Model weights should be on the same path.')
     args = parser.parse_args()
     with open(args.model, 'r') as jfile:
-        model = model_from_json(json.load(jfile))
+        model = model_from_json(jfile.read())
+        # model = model_from_json(json.load(jfile))
 
     model.compile("adam", "mse")
     weights_file = args.model.replace('json', 'h5')
     model.load_weights(weights_file)
-    '''
+
 
     # wrap Flask application with engineio's middleware
     app = socketio.Middleware(sio, app)
