@@ -88,7 +88,9 @@ def read_image_gen(data_gen):
 def load_all_datasets(remove_jerky = False):
   datasets = [
     '../../../sdc/behavioral-cloning/train1-complete',
-    '../../../sdc/behavioral-cloning/train2-complete'
+    '../../../sdc/behavioral-cloning/train2-complete',
+    '../../../sdc/behavioral-cloning/train3-complete',
+    '../../../sdc/behavioral-cloning/train4-complete'
   ]
 
   X_all_data = []

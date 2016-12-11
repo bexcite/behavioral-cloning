@@ -127,7 +127,7 @@ def main():
 
   X_train_files, X_val_files, y_train, y_val = train_test_split(
       X_data_files, y_data,
-      test_size=0.2,
+      test_size=0.15,
       random_state=13)
 
   X_val_files, X_test_files, y_val, y_test = train_test_split(
@@ -203,8 +203,8 @@ def main():
   save_model(model, save_file)
 
   print('Inference on train data ...')
-  sample = pump_image_data(X_train_files[:40])
-  labels_sample = y_train[:40]
+  sample = pump_image_data(X_train_files[:80])
+  labels_sample = y_train[:80]
   # if DEBUG:
   #   sample = pump_image_data(X_train_files)
   #   labels_sample = y_train
@@ -228,8 +228,8 @@ def main():
   make_fig(model_type, rmse, pic_name, labels_sample, steering_angle)
 
   # Test only
-  X_test = X_test[:40]
-  y_test = y_test[:40]
+  X_test = X_test[:80]
+  y_test = y_test[:80]
 
   print('Evaluate model on test data batch.')
   test_predicts = model.predict(X_test)
