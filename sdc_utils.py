@@ -2,6 +2,7 @@ import numpy as np
 import csv
 import os
 from PIL import Image
+from jerky_utils import remove_jerky_sections
 
 def read_signnames(file):
     with open(file) as f:
@@ -82,3 +83,31 @@ def read_image_gen(data_gen):
     # print(X_batch[:3])
     # print(y_batch[:3])
     yield X_image, y_image
+
+
+def load_all_datasets(remove_jerky = False):
+  datasets = [
+    '../../../sdc/behavioral-cloning/train1-complete',
+    '../../../sdc/behavioral-cloning/train2-complete'
+  ]
+
+  X_all_data = []
+  y_all_data = []
+
+  for dataset_path in datasets:
+    X_data_files, y_data = load_dataset(dataset_path, remove_jerky)
+    X_all_data.extend(X_data_files)
+    y_all_data.extend(y_data)
+
+  return X_all_data, y_all_data
+
+
+def load_dataset(dataset_path, remove_jerky = False):
+    X_data_files, y_data = bc_read_data(dataset_path)
+
+    print('Remove jerky sections ...')
+    X_data_files, y_data = remove_jerky_sections(X_data_files, y_data, dataset_path)
+    print('len X_data_files =', len(X_data_files))
+    print('len y_data =', len(y_data))
+
+    return X_data_files, y_data

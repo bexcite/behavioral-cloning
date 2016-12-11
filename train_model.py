@@ -7,11 +7,14 @@ import cv2
 import argparse
 import numpy as np
 import time
+import os
 # import math
 # from moviepy.editor import ImageSequenceClip
 from sklearn.model_selection import train_test_split
 from sdc_utils import bc_read_data, normalize, pump_image_data
 from sdc_utils import read_data_gen, read_image_gen
+from sdc_utils import load_dataset, load_all_datasets
+# from jerky_utils import remove_jerky_sections
 from model import create_model, create_model_linear, create_model_conv
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint
@@ -72,13 +75,10 @@ def train_model(model, data, labels,
   model_saver = ModelCheckpoint(filepath="checkpoints/%s_weights_n%d_{epoch:02d}_{val_loss:.4f}.hdf5" % (save_time, len(data)), verbose=1, save_best_only=True)
   history = model.fit(data, labels, nb_epoch = nb_epoch, verbose = 1, validation_data = validation_data, callbacks=[model_saver])
 
-
-
   print('history =', history.history)
   print("metrics_name =", model.metrics_names)
 
   return model
-
 
 
 def main():
@@ -104,49 +104,22 @@ def main():
   restore_weights = args.restore_weights
 
   if not dataset_path:
-    parser.error("No dataset is not specified")
+    parser.error("Dataset is not specified")
 
   print('dataset = ', dataset_path)
   print('save_file = ', save_file)
   print('nb_epoch = ', nb_epoch)
   print('batch_size = ', batch_size)
 
-  X_data_files, y_data = bc_read_data(dataset_path)
+  if dataset_path == 'all':
+    print('Load ALL datasets.')
+    X_data_files, y_data = load_all_datasets(remove_jerky = True)
+  else:
+    X_data_files, y_data = load_dataset(dataset_path, remove_jerky = True)
 
   print('len X_data_files =', len(X_data_files))
   print('len y_data =', len(y_data))
 
-  # TODO: Extract this
-  print('Remove jerky sections ...')
-  # Idxs to remove from dataset (bad driver:))
-  to_remove = [
-    [0, 30],
-    [300, 320],
-    [900, 965],
-    [1546, 1575],
-    [2020, 2040],
-    [2170, 2200],
-    [3470, 3538]
-  ]
-
-  def leave_elements_idx(n, to_remove):
-    if len(to_remove) == 0: return np.arange(n)
-    all_list = []
-    for rm in to_remove:
-        rm_arr = np.arange(rm[0], rm[1])
-        all_list.append(rm_arr)
-    conc = np.concatenate(all_list, axis = 0)
-    return np.delete(np.arange(n), conc)
-
-  leave_idx = leave_elements_idx(len(X_data_files), to_remove)
-
-  X_data_files = np.asarray(X_data_files)
-  X_data_files = X_data_files[leave_idx]
-  X_data_files = X_data_files.tolist()
-  y_data = y_data[leave_idx]
-
-  print('len X_data_files =', len(X_data_files))
-  print('len y_data =', len(y_data))
 
 
 
@@ -249,7 +222,7 @@ def main():
     plt.plot(predict_data, 'b^-', label='predict')
     plt.legend(loc='best')
     plt.title("Model type: %s, RMSE: %.2f" % (model_type, rmse))
-    plt.savefig(pic_name)
+    plt.savefig('graphs/%s' % pic_name)
 
   pic_name = "%s_%s_train.png" % (model_type, save_time)
   make_fig(model_type, rmse, pic_name, labels_sample, steering_angle)

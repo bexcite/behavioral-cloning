@@ -49,7 +49,7 @@ def telemetry(sid, data):
 
 
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
-    throttle = 0.2 # 
+    throttle = 0.2 #
     print(steering_angle, throttle)
     send_control(steering_angle, throttle)
 
@@ -73,15 +73,23 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Remote Driving')
     parser.add_argument('model', type=str,
-    help='Path to model definition json. Model weights should be on the same path.')
+        help='Path to model definition json. Model weights should be on the same path or specify --restore_weights.')
+    parser.add_argument('--restore_weights', type=str, help='Restore weights from checkpoint')
     args = parser.parse_args()
     with open(args.model, 'r') as jfile:
         model = model_from_json(jfile.read())
         # model = model_from_json(json.load(jfile))
 
     model.compile("adam", "mse")
-    weights_file = args.model.replace('json', 'h5')
-    model.load_weights(weights_file)
+
+    if args.restore_weights:
+      # eventlet
+      print('Restoring weights from', args.restore_weights)
+      model.load_weights(args.restore_weights)
+    else:
+      weights_file = args.model.replace('json', 'h5')
+      print('Restoring weights from', weights_file)
+      model.load_weights(weights_file)
 
 
     # wrap Flask application with engineio's middleware

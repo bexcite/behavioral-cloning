@@ -17,9 +17,11 @@ python video.py --dataset ../../../sdc/behavioral-cloning/train2-complete
 
 + video.py - make video from --dataset folder to --output file (or 'movie.mp4' by default)
 + extract model.py (free it from junk) (linear & cnn model)
-- make model_train.py - training routine with saving etc.
++ make model_train.py - training routine with saving etc.
 + train for overfitting model (linear & cnn) - DEBUG mode
-- clean dataset
++ clean dataset
+- generate reverse dataset
+- generate recovery dataset
 
 python video.py --dataset ../../../sdc/behavioral-cloning/train2-complete
 

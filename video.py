@@ -12,6 +12,8 @@ import numpy as np
 import math
 from moviepy.editor import ImageSequenceClip
 from sdc_utils import bc_read_data, normalize
+from sdc_utils import load_dataset, load_all_datasets
+from jerky_utils import remove_jerky_sections
 
 DEBUG = 0
 
@@ -57,19 +59,32 @@ def main():
   parser = argparse.ArgumentParser(description="Making video from provided dataset folder")
   parser.add_argument('--dataset', type=str, help='dataset folder with csv file and image folders')
   parser.add_argument('--output', type=str, default='movie.mp4', help='output movie file')
+  parser.add_argument('--remove_jerky', default=False, action='store_true', help='Remove jerky sections if dataset name is present in jerky_utils.py')
 
   args = parser.parse_args()
 
   dataset_path = args.dataset
   output_file = args.output
+  remove_jerky = args.remove_jerky
 
   if not dataset_path:
-    parser.error("No dataset is not specified")
+    parser.error("Dataset is not specified")
 
   print('dataset = ', dataset_path)
   print('output = ', output_file)
 
-  X_data_files, y_data = bc_read_data(dataset_path)
+
+  if dataset_path == 'all':
+    print('Load ALL datasets.')
+    X_data_files, y_data = load_all_datasets(remove_jerky = remove_jerky)
+  else:
+    X_data_files, y_data = load_dataset(dataset_path, remove_jerky = remove_jerky)
+
+  #
+  # if remove_jerky:
+  #   print('Remove jerky sections ...')
+  #   X_data_files, y_data = remove_jerky_sections(X_data_files, y_data, dataset_path)
+
 
   print('len X_data_files =', len(X_data_files))
   print('len y_data =', len(y_data))
