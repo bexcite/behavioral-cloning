@@ -64,7 +64,7 @@ def main():
   output_file = args.output
 
   if not dataset_path:
-    parser.error("No dataset is specified")
+    parser.error("No dataset is not specified")
 
   print('dataset = ', dataset_path)
   print('output = ', output_file)

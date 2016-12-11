@@ -1,6 +1,7 @@
 import numpy as np
 import csv
 import os
+from PIL import Image
 
 def read_signnames(file):
     with open(file) as f:
@@ -40,3 +41,44 @@ def bc_read_data(data_folder):
       # if i > 20: break
 
   return X_data, np.asarray(y_data)
+
+
+def read_data_gen(data, labels, batch_size=64):
+  size = len(data)
+  begin = 0
+  # for begin in range(0, size, batch_size):
+  while True:
+    end = begin + batch_size
+    if begin >= size:
+        begin = 0
+        end = batch_size
+    if end > size:
+        end = size
+    # print("gen = %d : %d" % (begin, end))
+    yield data[begin:end], labels[begin:end]
+    begin += batch_size
+
+
+def pump_image_data(data):
+  data_img = [np.asarray(Image.open(img_file)) for img_file in data]
+  data_img = normalize(np.asarray(data_img))
+  return data_img
+
+
+def read_image_gen(data_gen):
+  for X_batch_files, y_batch in data_gen:
+    # X_image = [np.asarray(Image.open(img_file)) for img_file in X_batch]
+    X_image = pump_image_data(X_batch_files)
+    # y_image = y_batch
+    # X_image = np.asarray(X_image)
+    y_image = np.asarray(y_batch)
+    # print('im =', X_image[0].shape)
+    # print('im2 =', X_image[0])
+    # for img_file in X_batch:
+    #   im = Image.open(img_file)
+    #   im_as_array = np.asarray(im)
+    #   print('im =', im_as_array.shape)
+    # print('%d : %d' % (len(X_batch), len(y_batch)))
+    # print(X_batch[:3])
+    # print(y_batch[:3])
+    yield X_image, y_image
