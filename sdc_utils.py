@@ -94,7 +94,9 @@ def load_all_datasets(base_path, remove_jerky = False):
     os.path.join(base_path, 'train5-complete'),
     os.path.join(base_path, 'train6-complete'),
     os.path.join(base_path, 'train7-complete'),
-    os.path.join(base_path, 'train8-complete')
+    os.path.join(base_path, 'train8-complete'),
+    os.path.join(base_path, 'train9-complete'),
+    os.path.join(base_path, 'train10-complete')
   ]
 
   X_all_data = []
