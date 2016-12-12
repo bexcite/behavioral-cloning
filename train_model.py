@@ -40,7 +40,7 @@ def train_model_on_gen(model, train_gen,
       batch_size = None,
       nb_epoch = 1):
 
-  adam = Adam(lr=1e-3, decay=0.3)
+  adam = Adam(lr=1e-4, decay=0.1)
   model.compile(optimizer=adam, loss="mse", metrics=['accuracy'])
 
   # samples_per_epoch = (samples_per_epoch // batch_size) * batch_size
@@ -67,7 +67,7 @@ def train_model(model, data, labels,
       batch_size = None,
       nb_epoch = 1):
 
-  adam = Adam(lr=1e-3, decay=0.3) # decay=0.3, lr=1e-3
+  adam = Adam(lr=1e-4, decay=0.1) # decay=0.3, lr=1e-3
   model.compile(optimizer=adam, loss="mse", metrics=['accuracy'])
 
   # samples_per_epoch = (samples_per_epoch // batch_size) * batch_size

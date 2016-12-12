@@ -32,6 +32,8 @@ def create_model_linear():
   model = Model(input=a, output=b)
   return model
 
+
+
 def create_model_conv():
     nb_filters1 = 32
     nb_filters2 = 64
@@ -73,12 +75,55 @@ def create_model_conv():
     model = Model(input=a, output=b)
     return model
 
+def create_model_conv2():
+    nb_filters1 = 32
+    nb_filters2 = 64
+    kernel_size = (5, 5)
+    pool_size = (2, 2)
+
+    a = Input(shape=(h, w, ch))
+
+    # Convolution 1
+    f = Convolution2D(nb_filters1, kernel_size[0], kernel_size[1],
+                          border_mode='same',
+                          input_shape=(h, w, ch))(a)
+    f = Activation('tanh')(f)
+    f = MaxPooling2D(pool_size=pool_size)(f)
+
+    # Convolution 2
+    f = Convolution2D(nb_filters2, kernel_size[0], kernel_size[1],
+                          border_mode='same',
+                          input_shape=(h, w, ch))(f)
+    f = Activation('tanh')(f)
+    f = MaxPooling2D(pool_size=pool_size)(f)
+
+    f = Dropout(0.5)(f)
+
+    f = Flatten()(f)
+
+    # Fully Connected 1
+    f = Dense(512)(f)
+    f = Activation('tanh')(f)
+
+    # Fully Connected 2
+    # f = Dense(128)(f)
+    # f = Activation('tanh')(f)
+
+    # f = Dropout(0.5)(f)
+
+    b = Dense(1)(f)
+    # b = Activation('sigmoid')(f)
+    model = Model(input=a, output=b)
+    return model
+
+
 
 # Created model for linear regression
 def create_model(model_type = 'cnn'):
   models = {
     'linear' : create_model_linear,
-    'cnn': create_model_conv
+    'cnn': create_model_conv,
+    'cnn2': create_model_conv2
   }
   builder = models.get(model_type)
   model = builder()
