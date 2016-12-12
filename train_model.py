@@ -88,6 +88,7 @@ def main():
   # parse arguments
   parser = argparse.ArgumentParser(description="Trains model on provided dataset and model type")
   parser.add_argument('--dataset', type=str, help='dataset folder with csv file and image folders')
+  parser.add_argument('--base_path', type=str, default='../../../sdc/behavioral-cloning', help='Base datasets path - required for "all" dataset')
   parser.add_argument('--model', type=str, default='linear', help='model to evaluate, current list: {linear, cnn}')
   parser.add_argument('--save_file', type=str, default='model.json', help='save model and params')
   parser.add_argument('--nb_epoch', type=int, default=1, help='# of training epoch')
@@ -97,6 +98,7 @@ def main():
   args = parser.parse_args()
 
   dataset_path = args.dataset
+  base_path = args.base_path
   save_file = args.save_file
   nb_epoch = args.nb_epoch
   batch_size = args.batch_size
@@ -113,7 +115,7 @@ def main():
 
   if dataset_path == 'all':
     print('Load ALL datasets.')
-    X_data_files, y_data = load_all_datasets(remove_jerky = True)
+    X_data_files, y_data = load_all_datasets(base_path, remove_jerky = True)
   else:
     X_data_files, y_data = load_dataset(dataset_path, remove_jerky = True)
 
@@ -203,8 +205,10 @@ def main():
   save_model(model, save_file)
 
   print('Inference on train data ...')
-  sample = pump_image_data(X_train_files[:80])
-  labels_sample = y_train[:80]
+
+  sample = pump_image_data(X_train_files[:80] if len(X_train_files) > 80 else X_train_files)
+  labels_sample = y_train[:80] if len(y_train) > 80 else y_train
+
   # if DEBUG:
   #   sample = pump_image_data(X_train_files)
   #   labels_sample = y_train
@@ -228,8 +232,8 @@ def main():
   make_fig(model_type, rmse, pic_name, labels_sample, steering_angle)
 
   # Test only
-  X_test = X_test[:80]
-  y_test = y_test[:80]
+  X_test = X_test[:80] if len(X_test) > 80 else X_test
+  y_test = y_test[:80] if len(y_test) > 80 else y_test
 
   print('Evaluate model on test data batch.')
   test_predicts = model.predict(X_test)

@@ -85,12 +85,16 @@ def read_image_gen(data_gen):
     yield X_image, y_image
 
 
-def load_all_datasets(remove_jerky = False):
+def load_all_datasets(base_path, remove_jerky = False):
   datasets = [
-    '../../../sdc/behavioral-cloning/train1-complete',
-    '../../../sdc/behavioral-cloning/train2-complete',
-    '../../../sdc/behavioral-cloning/train3-complete',
-    '../../../sdc/behavioral-cloning/train4-complete'
+    os.path.join(base_path, 'train1-complete'),
+    os.path.join(base_path, 'train2-complete'),
+    os.path.join(base_path, 'train3-complete'),
+    os.path.join(base_path, 'train4-complete'),
+    os.path.join(base_path, 'train5-complete'),
+    os.path.join(base_path, 'train6-complete'),
+    os.path.join(base_path, 'train7-complete'),
+    os.path.join(base_path, 'train8-complete')
   ]
 
   X_all_data = []
