@@ -96,6 +96,7 @@ def main():
   parser.add_argument('--nb_epoch', type=int, default=1, help='# of training epoch')
   parser.add_argument('--batch_size', type=int, default=8, help='training batch size')
   parser.add_argument('--restore_weights', type=str, help='Restore weights from checkpoint')
+  parser.add_argument('--validation_split', type=float, default=0.15, help='Validation split - used for val+test combined')
 
   args = parser.parse_args()
 
@@ -106,6 +107,7 @@ def main():
   batch_size = args.batch_size
   model_type = args.model
   restore_weights = args.restore_weights
+  validation_split = args.validation_split
 
   if not dataset_path:
     parser.error("Dataset is not specified")
@@ -131,7 +133,7 @@ def main():
 
   X_train_files, X_val_files, y_train, y_val = train_test_split(
       X_data_files, y_data,
-      test_size=0.15,
+      test_size=validation_split,
       random_state=13)
 
   X_val_files, X_test_files, y_val, y_test = train_test_split(

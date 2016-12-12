@@ -15,7 +15,7 @@ python video.py --dataset ../../../sdc/behavioral-cloning/train2-complete
 # Train latest
 python train_model.py --dataset all --base_path ../../../sdc/behavioral-cloning --restore_weights checkpoints/20161211005939_weights_n7902_28_0.0145-good.hdf5 --model cnn --batch_size=20 --nb_epoch 1
 
-python train_model.py --dataset ../data/train4-complete --model cnn --batch_size=20 --nb_epoch 5
+python train_model.py --dataset all --base_path ../data/reduced --model cnn --validation_split 0.10 --batch_size=20 --nb_epoch 5
 
 ```
 
