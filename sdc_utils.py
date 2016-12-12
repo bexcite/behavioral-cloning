@@ -103,9 +103,10 @@ def load_all_datasets(base_path, remove_jerky = False):
   y_all_data = []
 
   for dataset_path in datasets:
-    X_data_files, y_data = load_dataset(dataset_path, remove_jerky)
-    X_all_data.extend(X_data_files)
-    y_all_data.extend(y_data)
+    if os.path.isdir(dataset_path):
+      X_data_files, y_data = load_dataset(dataset_path, remove_jerky)
+      X_all_data.extend(X_data_files)
+      y_all_data.extend(y_data)
 
   return X_all_data, y_all_data
 
