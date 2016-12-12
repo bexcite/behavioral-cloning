@@ -19,6 +19,8 @@ from model import create_model, create_model_linear, create_model_conv
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint
 
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 DEBUG = 0
