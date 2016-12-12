@@ -84,8 +84,6 @@ def train_model(model, data, labels,
 
 
 def main():
-  if DEBUG:
-    print("DEBUG mode is ON")
 
   # parse arguments
   parser = argparse.ArgumentParser(description="Trains model on provided dataset and model type")
@@ -96,6 +94,7 @@ def main():
   parser.add_argument('--nb_epoch', type=int, default=1, help='# of training epoch')
   parser.add_argument('--batch_size', type=int, default=8, help='training batch size')
   parser.add_argument('--restore_weights', type=str, help='Restore weights from checkpoint')
+  parser.add_argument('--debug_mode', default=False, action='store_true', help='Turn on DEBUG mode')
   parser.add_argument('--validation_split', type=float, default=0.15, help='Validation split - used for val+test combined')
 
   args = parser.parse_args()
@@ -108,6 +107,16 @@ def main():
   model_type = args.model
   restore_weights = args.restore_weights
   validation_split = args.validation_split
+
+  # This is a bad style ... but ... heh ...
+  global DEBUG
+
+  if args.debug_mode:
+    DEBUG = 1
+
+  if DEBUG:
+    print("DEBUG mode is ON")
+
 
   if not dataset_path:
     parser.error("Dataset is not specified")
@@ -162,12 +171,12 @@ def main():
     # X_train_files = np.asarray(X_train_files)[select_idxs]
     # X_train_files = X_train_files.tolist()
     # y_train = y_train[select_idxs]
-    X_train_files = X_train_files[:100]
-    y_train = y_train[:100]
+    X_train_files = X_train_files[:20]
+    y_train = y_train[:20]
     print('X_train =', len(X_train_files))
     print('y_train =', len(y_train))
-    X_val = X_val[:40]
-    y_val = y_val[:40]
+    X_val = X_val[:10]
+    y_val = y_val[:10]
     print('X_val =', X_val.shape)
     print('y_val =', y_val.shape)
 
