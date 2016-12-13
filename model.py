@@ -116,6 +116,25 @@ def create_model_conv2():
     model = Model(input=a, output=b)
     return model
 
+'''
+# Comma.ai model
+model = Sequential()
+  model.add(Lambda(lambda x: x/127.5 - 1.,
+            input_shape=(ch, row, col),
+            output_shape=(ch, row, col)))
+  model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same"))
+  model.add(ELU())
+  model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same"))
+  model.add(ELU())
+  model.add(Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same"))
+  model.add(Flatten())
+  model.add(Dropout(.2))
+  model.add(ELU())
+  model.add(Dense(512))
+  model.add(Dropout(.5))
+  model.add(ELU())
+  model.add(Dense(1))
+'''
 
 
 # Created model for linear regression

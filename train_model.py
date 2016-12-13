@@ -135,7 +135,16 @@ def main():
   print('len X_data_files =', len(X_data_files))
   print('len y_data =', len(y_data))
 
+  '''
+  y_arr = np.asarray(y_data)
+  z = np.sum(y_arr == 0)
+  print('z = ', z)
+  neg = np.sum(y_arr < 0)
+  print('neg = ', neg)
+  pos = np.sum(y_arr > 0)
+  print('pos = ', pos)
 
+  '''
 
 
   print('Split Train/Val/Tetst')
@@ -167,16 +176,16 @@ def main():
 
   if DEBUG:
     print("DEBUG: reducing data")
-    # select_idxs = [0, 3]
+    # select_idxs = [0, 4, 10]
     # X_train_files = np.asarray(X_train_files)[select_idxs]
     # X_train_files = X_train_files.tolist()
     # y_train = y_train[select_idxs]
-    X_train_files = X_train_files[:20]
-    y_train = y_train[:20]
+    X_train_files = X_train_files[:500]
+    y_train = y_train[:500]
     print('X_train =', len(X_train_files))
     print('y_train =', len(y_train))
-    X_val = X_val[:10]
-    y_val = y_val[:10]
+    X_val = X_val[:150]
+    y_val = y_val[:150]
     print('X_val =', X_val.shape)
     print('y_val =', y_val.shape)
 
@@ -219,8 +228,8 @@ def main():
 
   print('Inference on train data ...')
 
-  sample = pump_image_data(X_train_files[:80] if len(X_train_files) > 80 else X_train_files)
-  labels_sample = y_train[:80] if len(y_train) > 80 else y_train
+  sample = pump_image_data(X_train_files[:100] if len(X_train_files) > 100 else X_train_files)
+  labels_sample = y_train[:100] if len(y_train) > 100 else y_train
 
   # if DEBUG:
   #   sample = pump_image_data(X_train_files)
@@ -245,8 +254,8 @@ def main():
   make_fig(model_type, rmse, pic_name, labels_sample, steering_angle)
 
   # Test only
-  X_test = X_test[:80] if len(X_test) > 80 else X_test
-  y_test = y_test[:80] if len(y_test) > 80 else y_test
+  X_test = X_test[:100] if len(X_test) > 100 else X_test
+  y_test = y_test[:100] if len(y_test) > 100 else y_test
 
   print('Evaluate model on test data batch.')
   test_predicts = model.predict(X_test)
