@@ -96,6 +96,7 @@ def main():
   parser.add_argument('--restore_weights', type=str, help='Restore weights from checkpoint')
   parser.add_argument('--debug_mode', default=False, action='store_true', help='Turn on DEBUG mode')
   parser.add_argument('--validation_split', type=float, default=0.15, help='Validation split - used for val+test combined')
+  parser.add_argument('--remove_jerky', default=False, action='store_true', help='Remove jerky sections if dataset name is present in jerky_utils.py')
 
   args = parser.parse_args()
 
@@ -107,6 +108,7 @@ def main():
   model_type = args.model
   restore_weights = args.restore_weights
   validation_split = args.validation_split
+  remove_jerky = args.remove_jerky
 
   # This is a bad style ... but ... heh ...
   global DEBUG
@@ -128,9 +130,9 @@ def main():
 
   if dataset_path == 'all':
     print('Load ALL datasets.')
-    X_data_files, y_data = load_all_datasets(base_path, remove_jerky = True)
+    X_data_files, y_data = load_all_datasets(base_path, remove_jerky = remove_jerky)
   else:
-    X_data_files, y_data = load_dataset(dataset_path, remove_jerky = True)
+    X_data_files, y_data = load_dataset(dataset_path, remove_jerky = remove_jerky)
 
   print('len X_data_files =', len(X_data_files))
   print('len y_data =', len(y_data))

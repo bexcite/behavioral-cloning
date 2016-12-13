@@ -45,5 +45,8 @@ https://www.dropbox.com/sh/4t4o7srfbzshydf/AACjodIHwsjpMxmpxQfavcuCa?dl=0
 + clean dataset
 + generate reverse dataset
 + generate recovery dataset
+- resize images
+- smooth angle
+- flip images to get more data
 - more overfitting
 - make it all drive :)
