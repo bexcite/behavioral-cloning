@@ -6,6 +6,13 @@ __pycache__/
 # C extensions
 *.so
 
+# Run results
+graphs/
+checkpoints/
+
+# Generated Movies
+movie*.mp4
+
 # Distribution / packaging
 .Python
 env/
