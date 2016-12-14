@@ -116,6 +116,48 @@ def create_model_conv2():
     model = Model(input=a, output=b)
     return model
 
+def create_model_conv3():
+    a = Input(shape=(h, w, ch))
+
+    # Convolution 1
+    f = Convolution2D(16, 8, 8,
+                          border_mode='same',
+                          subsample = (4, 4))(a)
+    f = Activation('elu')(f)
+
+    # Convolution 2
+    f = Convolution2D(32, 5, 5,
+                          border_mode='same',
+                          subsample = (2, 2))(f)
+    f = Activation('elu')(f)
+
+    # Convolution 3
+    f = Convolution2D(64, 5, 5,
+                          border_mode='same',
+                          subsample = (2, 2))(f)
+
+    f = Flatten()(f)
+    f = Dropout(0.2)(f)
+    f = Activation('elu')(f)
+
+    # Fully Connected 1
+    f = Dense(512)(f)
+    f = Dropout(0.5)(f)
+    f = Activation('elu')(f)
+
+    # Fully Connected 2
+    # f = Dense(128)(f)
+    # f = Activation('tanh')(f)
+
+    # f = Dropout(0.5)(f)
+
+    b = Dense(1)(f)
+    # b = Activation('sigmoid')(f)
+    model = Model(input=a, output=b)
+    return model
+
+
+
 '''
 # Comma.ai model
 model = Sequential()
@@ -142,7 +184,8 @@ def create_model(model_type = 'cnn'):
   models = {
     'linear' : create_model_linear,
     'cnn': create_model_conv,
-    'cnn2': create_model_conv2
+    'cnn2': create_model_conv2,
+    'cnn3': create_model_conv3
   }
   builder = models.get(model_type)
   model = builder()
