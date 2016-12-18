@@ -60,12 +60,14 @@ def main():
   parser.add_argument('--dataset', type=str, help='dataset folder with csv file and image folders')
   parser.add_argument('--output', type=str, default='movie.mp4', help='output movie file')
   parser.add_argument('--remove_jerky', default=False, action='store_true', help='Remove jerky sections if dataset name is present in jerky_utils.py')
+  parser.add_argument('--left_right_images', default=False, action='store_true', help='Load left and right images into training data. Increse the size of train by 3x')
 
   args = parser.parse_args()
 
   dataset_path = args.dataset
   output_file = args.output
   remove_jerky = args.remove_jerky
+  left_right_images = args.left_right_images
 
   if not dataset_path:
     parser.error("Dataset is not specified")
@@ -76,9 +78,9 @@ def main():
 
   if dataset_path == 'all':
     print('Load ALL datasets.')
-    X_data_files, y_data = load_all_datasets(remove_jerky = remove_jerky)
+    X_data_files, y_data = load_all_datasets(remove_jerky = remove_jerky, left_right = left_right_images)
   else:
-    X_data_files, y_data = load_dataset(dataset_path, remove_jerky = remove_jerky)
+    X_data_files, y_data = load_dataset(dataset_path, remove_jerky = remove_jerky, left_right = left_right_images)
 
   #
   # if remove_jerky:

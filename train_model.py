@@ -12,12 +12,14 @@ import os
 # from moviepy.editor import ImageSequenceClip
 from sklearn.model_selection import train_test_split
 from sdc_utils import bc_read_data, normalize, pump_image_data
+from sdc_utils import extend_with_flipped
 from sdc_utils import read_data_gen, read_image_gen
 from sdc_utils import load_dataset, load_all_datasets
 # from jerky_utils import remove_jerky_sections
 from model import create_model, create_model_linear, create_model_conv
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint
+from video import make_video
 
 import matplotlib
 matplotlib.use('Agg')
@@ -36,11 +38,12 @@ def save_model(model, model_file_name):
 
 def train_model_on_gen(model, train_gen,
       validation_data = None,
+      lr = 0.001,
       samples_per_epoch = None,
       batch_size = None,
       nb_epoch = 1):
 
-  adam = Adam(lr=1e-3, decay=0.1)
+  adam = Adam(lr=lr, decay=0.1)
   model.compile(optimizer=adam, loss="mse", metrics=['accuracy'])
 
   # samples_per_epoch = (samples_per_epoch // batch_size) * batch_size
@@ -64,10 +67,11 @@ def train_model_on_gen(model, train_gen,
 
 def train_model(model, data, labels,
       validation_data = None,
+      lr = 0.001,
       batch_size = None,
       nb_epoch = 1):
 
-  adam = Adam(lr=1e-3, decay=0.1) # decay=0.3, lr=1e-3
+  adam = Adam(lr=lr, decay=0.1) # decay=0.3, lr=1e-3
   model.compile(optimizer=adam, loss="mse", metrics=['accuracy'])
 
   # samples_per_epoch = (samples_per_epoch // batch_size) * batch_size
@@ -96,7 +100,11 @@ def main():
   parser.add_argument('--restore_weights', type=str, help='Restore weights from checkpoint')
   parser.add_argument('--debug_mode', default=False, action='store_true', help='Turn on DEBUG mode')
   parser.add_argument('--validation_split', type=float, default=0.15, help='Validation split - used for val+test combined')
+  parser.add_argument('--lr', type=float, default=0.001, help='Learning rate - default 0.001')
+  parser.add_argument('--resize_factor', type=float, default=1, help='Resize image factor - default 1.0')
   parser.add_argument('--remove_jerky', default=False, action='store_true', help='Remove jerky sections if dataset name is present in jerky_utils.py')
+  parser.add_argument('--flip_images', default=False, action='store_true', help='Flip images of all training data. Increse the size of train by 2x')
+  parser.add_argument('--left_right_images', default=False, action='store_true', help='Load left and right images into training data. Increse the size of train by 3x')
 
   args = parser.parse_args()
 
@@ -109,6 +117,12 @@ def main():
   restore_weights = args.restore_weights
   validation_split = args.validation_split
   remove_jerky = args.remove_jerky
+  lr = args.lr
+  resize_factor = args.resize_factor
+  flip_images = args.flip_images
+  flip_images_ratio = 0.3
+  left_right_images = args.left_right_images
+
 
   # This is a bad style ... but ... heh ...
   global DEBUG
@@ -127,12 +141,16 @@ def main():
   print('save_file = ', save_file)
   print('nb_epoch = ', nb_epoch)
   print('batch_size = ', batch_size)
+  print('lr =', lr)
+  print('resize_factor =', resize_factor)
+  print('flip_images =', flip_images)
+  print('left_right_images =', left_right_images)
 
   if dataset_path == 'all':
     print('Load ALL datasets.')
-    X_data_files, y_data = load_all_datasets(base_path, remove_jerky = remove_jerky)
+    X_data_files, y_data = load_all_datasets(base_path, remove_jerky = remove_jerky, left_right = left_right_images)
   else:
-    X_data_files, y_data = load_dataset(dataset_path, remove_jerky = remove_jerky)
+    X_data_files, y_data = load_dataset(dataset_path, remove_jerky = remove_jerky, left_right = left_right_images)
 
   print('len X_data_files =', len(X_data_files))
   print('len y_data =', len(y_data))
@@ -161,8 +179,8 @@ def main():
       test_size=0.5,
       random_state=17)
 
-  X_val = pump_image_data(X_val_files)
-  X_test = pump_image_data(X_test_files)
+  X_val = pump_image_data(X_val_files, resize_factor)
+  X_test = pump_image_data(X_test_files, resize_factor)
 
   y_train = np.asarray(y_train)
   y_val = np.asarray(y_val)
@@ -174,6 +192,12 @@ def main():
   print('y_val =', y_val.shape)
   print('X_test =', X_test.shape)
   print('y_test =', y_test.shape)
+
+  # Make video of train/val/test
+  # make_video(X_train_files, y_train, 'movie-train.mp4')
+  # make_video(X_val_files, y_val, 'movie-val.mp4')
+  # make_video(X_test_files, y_test, 'movie-test.mp4')
+
 
 
   if DEBUG:
@@ -198,10 +222,11 @@ def main():
 
   # Prepare data generateors
   data_gen = read_data_gen(X_train_files, y_train, batch_size = batch_size)
-  image_gen = read_image_gen(data_gen)
+  image_gen = read_image_gen(data_gen, resize_factor, flip_images, flip_images_ratio = flip_images_ratio)
 
   print('Creating model.')
-  model = create_model(model_type)
+  model = create_model(model_type, resize_factor)
+  model.summary()
 
   if restore_weights:
     print('Restoring weights from ', restore_weights)
@@ -210,18 +235,26 @@ def main():
   print('Train model ...')
 
   if not DEBUG:
+    samples_per_epoch = len(X_train_files) * 1.33 if flip_images else len(X_train_files)
     model = train_model_on_gen(model, image_gen,
                         validation_data = (X_val, y_val),
-                        samples_per_epoch = len(X_train_files),
+                        lr = lr,
+                        samples_per_epoch = samples_per_epoch,
                         nb_epoch = nb_epoch,
                         batch_size = batch_size)
   else:
     # DEBUG
-    X_train = pump_image_data(X_train_files)
+    print('pump resize_factor = ', resize_factor)
+    X_train = pump_image_data(X_train_files, resize_factor)
+    if flip_images:
+      X_train, y_train = extend_with_flipped(X_train, y_train)
+      # X_val, y_val = extend_with_flipped(X_val, y_val)
+
     # print('X_train =', X_train)
     # print('y_train =', y_train)
     model = train_model(model, X_train, y_train,
                         validation_data = (X_val, y_val),
+                        lr = lr,
                         nb_epoch = nb_epoch,
                         batch_size = batch_size)
 
@@ -230,7 +263,7 @@ def main():
 
   print('Inference on train data ...')
 
-  sample = pump_image_data(X_train_files[:100] if len(X_train_files) > 100 else X_train_files)
+  sample = pump_image_data(X_train_files[:100] if len(X_train_files) > 100 else X_train_files, resize_factor)
   labels_sample = y_train[:100] if len(y_train) > 100 else y_train
 
   # if DEBUG:
@@ -256,8 +289,8 @@ def main():
   make_fig(model_type, rmse, pic_name, labels_sample, steering_angle)
 
   # Test only
-  X_test = X_test[:100] if len(X_test) > 100 else X_test
-  y_test = y_test[:100] if len(y_test) > 100 else y_test
+  # X_test = X_test[:100] if len(X_test) > 100 else X_test
+  # y_test = y_test[:100] if len(y_test) > 100 else y_test
 
   print('Evaluate model on test data batch.')
   test_predicts = model.predict(X_test)
@@ -265,6 +298,8 @@ def main():
   print("Test model evaluated RMSE:", rmse)
 
   pic_name = "%s_%s_test.png" % (model_type, save_time)
+  y_test = y_test[:100] if len(y_test) > 100 else y_test
+  test_predicts = test_predicts[:100] if len(test_predicts) > 100 else test_predicts
   make_fig(model_type, rmse, pic_name, y_test, test_predicts)
 
 

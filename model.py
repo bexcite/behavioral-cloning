@@ -20,7 +20,11 @@ import cv2
 h, w, ch = 160, 320, 3
 
 
-def create_model_linear():
+def create_model_linear(resize_factor = 1.0):
+
+  hh = int(h // resize_factor)
+  ww = int(w // resize_factor)
+
   a = Input(shape=(h, w, ch))
   f = Flatten()(a)
 
@@ -34,13 +38,16 @@ def create_model_linear():
 
 
 
-def create_model_conv():
+def create_model_conv(resize_factor = 1.0):
     nb_filters1 = 32
     nb_filters2 = 64
     kernel_size = (3, 3)
     pool_size = (2, 2)
 
-    a = Input(shape=(h, w, ch))
+    hh = int(h // resize_factor)
+    ww = int(w // resize_factor)
+
+    a = Input(shape=(hh, ww, ch))
 
     # Convolution 1
     f = Convolution2D(nb_filters1, kernel_size[0], kernel_size[1],
@@ -75,13 +82,16 @@ def create_model_conv():
     model = Model(input=a, output=b)
     return model
 
-def create_model_conv2():
+def create_model_conv2(resize_factor = 1.0):
     nb_filters1 = 32
     nb_filters2 = 64
     kernel_size = (5, 5)
     pool_size = (2, 2)
 
-    a = Input(shape=(h, w, ch))
+    hh = int(h // resize_factor)
+    ww = int(w // resize_factor)
+
+    a = Input(shape=(hh, ww, ch))
 
     # Convolution 1
     f = Convolution2D(nb_filters1, kernel_size[0], kernel_size[1],
@@ -116,8 +126,16 @@ def create_model_conv2():
     model = Model(input=a, output=b)
     return model
 
-def create_model_conv3():
-    a = Input(shape=(h, w, ch))
+def create_model_conv3(resize_factor = 1.0):
+    # ala comma.ai model
+
+    hh = int(h // resize_factor)
+    ww = int(w // resize_factor)
+    # print('hh = ', hh)
+    # print('ww = ', ww)
+
+    a = Input(shape=(hh, ww, ch))
+    # print('a =', a)
 
     # Convolution 1
     f = Convolution2D(16, 8, 8,
@@ -137,7 +155,7 @@ def create_model_conv3():
                           subsample = (2, 2))(f)
 
     f = Flatten()(f)
-    f = Dropout(0.2)(f)
+    f = Dropout(0.5)(f)
     f = Activation('elu')(f)
 
     # Fully Connected 1
@@ -156,39 +174,84 @@ def create_model_conv3():
     model = Model(input=a, output=b)
     return model
 
+def create_model_conv4(resize_factor = 1.0):
+    # ala comma.ai model
+
+    hh = int(h // resize_factor)
+    ww = int(w // resize_factor)
+
+    a = Input(shape=(hh, ww, ch))
+
+    # Convolution 1
+    f = Convolution2D(12, 4, 4,
+                          border_mode='same',
+                          subsample=(2, 2))(a)
+    f = Activation('elu')(f)
+    # f = MaxPooling2D(pool_size=(2, 2))(f)
+    # f = Dropout(0.2)(f)
+
+    # Convolution 2
+    f = Convolution2D(24, 3, 3,
+                          border_mode='same',
+                          subsample=(2, 2))(f)
+    f = Activation('elu')(f)
+    # f = MaxPooling2D(pool_size=(2, 2))(f)
+    f = Dropout(0.2)(f)
+
+    # Convolution 3
+    f = Convolution2D(48, 3, 3,
+                          border_mode='same',
+                          subsample=(1, 1))(f)
+    f = Activation('elu')(f)
+    f = MaxPooling2D(pool_size=(2, 2))(f)
+
+    # Convolution 4
+    f = Convolution2D(96, 3, 3,
+                          border_mode='same',
+                          subsample=(1, 1))(f)
+    f = Activation('elu')(f)
+    f = MaxPooling2D(pool_size=(2, 2))(f)
 
 
-'''
-# Comma.ai model
-model = Sequential()
-  model.add(Lambda(lambda x: x/127.5 - 1.,
-            input_shape=(ch, row, col),
-            output_shape=(ch, row, col)))
-  model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same"))
-  model.add(ELU())
-  model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same"))
-  model.add(ELU())
-  model.add(Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same"))
-  model.add(Flatten())
-  model.add(Dropout(.2))
-  model.add(ELU())
-  model.add(Dense(512))
-  model.add(Dropout(.5))
-  model.add(ELU())
-  model.add(Dense(1))
-'''
+    f = Dropout(0.5)(f)
+
+    f = Flatten()(f)
+
+    # Fully Connected 1
+    f = Dense(512)(f)
+    # f = Dropout(0.5)(f)
+    f = Activation('elu')(f)
+
+    # Fully Connected 2
+    f = Dense(64)(f)
+    f = Dropout(0.5)(f)
+    f = Activation('elu')(f)
+
+    # Fully Connected 2
+    # f = Dense(128)(f)
+    # f = Activation('tanh')(f)
+
+    # f = Dropout(0.5)(f)
+
+    b = Dense(1)(f)
+    # b = Activation('sigmoid')(f)
+    model = Model(input=a, output=b)
+    return model
+
+
 
 
 # Created model for linear regression
-def create_model(model_type = 'cnn'):
+def create_model(model_type = 'cnn', resize_factor = 1.0):
   models = {
     'linear' : create_model_linear,
     'cnn': create_model_conv,
     'cnn2': create_model_conv2,
-    'cnn3': create_model_conv3
+    'cnn3': create_model_conv3,
+    'cnn4': create_model_conv4,
   }
   builder = models.get(model_type)
-  model = builder()
+  model = builder(resize_factor)
   return model
 
 

@@ -17,10 +17,13 @@ from sdc_utils import normalize
 from keras.models import model_from_json
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array
 
+from scipy.misc import imresize
+
 
 sio = socketio.Server()
 app = Flask(__name__)
 model = None
+resize_factor = 1.0
 prev_image_array = None
 
 @sio.on('telemetry')
@@ -35,6 +38,11 @@ def telemetry(sid, data):
     imgString = data["image"]
     image = Image.open(BytesIO(base64.b64decode(imgString)))
     image_array = np.asarray(image)
+
+    # print('rf = ', resize_factor)
+    # Resize image acc to resize_factor
+    image_array = imresize(image_array, 1.0 / resize_factor)
+
     transformed_image_array = image_array[None, :, :, :]
 
     norm_image_array = normalize(transformed_image_array)
@@ -75,7 +83,11 @@ if __name__ == '__main__':
     parser.add_argument('model', type=str,
         help='Path to model definition json. Model weights should be on the same path or specify --restore_weights.')
     parser.add_argument('--restore_weights', type=str, help='Restore weights from checkpoint')
+    parser.add_argument('--resize_factor', type=float, default=1, help='Resize image factor - default 1.0')
     args = parser.parse_args()
+
+    resize_factor = args.resize_factor
+
     with open(args.model, 'r') as jfile:
         model = model_from_json(jfile.read())
         # model = model_from_json(json.load(jfile))

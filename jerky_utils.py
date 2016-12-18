@@ -400,7 +400,7 @@ jerky_sections['train10-complete'] = [
   [658, 705]
 ]
 
-def remove_jerky_sections(data, labels_data, dataset_path):
+def remove_jerky_sections(center_data, left_data, right_data, labels_data, dataset_path):
   # Idxs to remove from dataset (bad driver:))
 
   dataset_name = os.path.basename(os.path.normpath(dataset_path))
@@ -408,7 +408,7 @@ def remove_jerky_sections(data, labels_data, dataset_path):
 
   sections_to_remove = jerky_sections.get(dataset_name, [])
 
-  prev_size = len(data)
+  prev_size = len(center_data)
 
   def leave_elements_idx(n, to_remove):
     if len(to_remove) == 0: return np.arange(n)
@@ -419,15 +419,24 @@ def remove_jerky_sections(data, labels_data, dataset_path):
     conc = np.concatenate(all_list, axis = 0)
     return np.delete(np.arange(n), conc)
 
-  leave_idx = leave_elements_idx(len(data), sections_to_remove)
+  leave_idx = leave_elements_idx(len(center_data), sections_to_remove)
 
-  data_files = np.asarray(data)
-  data_files = data_files[leave_idx]
-  data_files = data_files.tolist()
+  center_data_files = np.asarray(center_data)
+  center_data_files = center_data_files[leave_idx]
+  center_data_files = center_data_files.tolist()
+
+  left_data_files = np.asarray(left_data)
+  left_data_files = left_data_files[leave_idx]
+  left_data_files = left_data_files.tolist()
+
+  right_data_files = np.asarray(right_data)
+  right_data_files = right_data_files[leave_idx]
+  right_data_files = right_data_files.tolist()
+
   labels = labels_data[leave_idx]
 
-  new_size = len(data_files)
+  new_size = len(center_data_files)
 
   print('Removed %d frames from dataset %s' % (prev_size - new_size, dataset_name))
 
-  return data_files, labels
+  return center_data_files, left_data_files, right_data_files, labels

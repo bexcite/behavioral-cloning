@@ -19,6 +19,8 @@ python train_model.py --dataset all --base_path ../data/reduced --model cnn --va
 
 python train_model.py --dataset all --base_path ../data/reduced --restore_weights checkpoints/20161212041441_weights_n18169_09_0.0293.hdf5 --model cnn --validation_split 0.10 --batch_size=20 --nb_epoch 35
 
+python train_model.py --dataset all --base_path ../data/reduced --model cnn3 --remove_jerky --validation_split 0.10 --batch_size=20 --nb_epoch 35
+
 
 ```
 
@@ -45,8 +47,10 @@ https://www.dropbox.com/sh/4t4o7srfbzshydf/AACjodIHwsjpMxmpxQfavcuCa?dl=0
 + clean dataset
 + generate reverse dataset
 + generate recovery dataset
-- resize images
+- add lr parameter
+- resize images imresize (https://docs.scipy.org/doc/scipy/reference/generated/scipy.misc.imresize.html)
+- flip images
+- train on a small data first and make it drive to the bridge and further
+- use right/left image (optional)
 - smooth angle
-- flip images to get more data
-- more overfitting
 - make it all drive :)
