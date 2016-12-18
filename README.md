@@ -47,10 +47,11 @@ https://www.dropbox.com/sh/4t4o7srfbzshydf/AACjodIHwsjpMxmpxQfavcuCa?dl=0
 + clean dataset
 + generate reverse dataset
 + generate recovery dataset
-- add lr parameter
-- resize images imresize (https://docs.scipy.org/doc/scipy/reference/generated/scipy.misc.imresize.html)
-- flip images
-- train on a small data first and make it drive to the bridge and further
-- use right/left image (optional)
++ add lr parameter
++ resize images imresize (https://docs.scipy.org/doc/scipy/reference/generated/scipy.misc.imresize.html)
++ flip images
++ train on a small data first and make it drive to the bridge and further
++ use right/left image (optional)
+- play with dropout for bigger angles
 - smooth angle
 - make it all drive :)

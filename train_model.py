@@ -50,7 +50,7 @@ def train_model_on_gen(model, train_gen,
 
   save_time = time.strftime("%Y%m%d%H%M%S")
 
-  model_saver = ModelCheckpoint(filepath="checkpoints/%s_weights_n%d_{epoch:02d}_{val_loss:.4f}.hdf5" % (save_time, samples_per_epoch), verbose=1, save_best_only=True)
+  model_saver = ModelCheckpoint(filepath="checkpoints/%s_weights_n%d_{epoch:02d}_{val_loss:.4f}.hdf5" % (save_time, samples_per_epoch), verbose=1, save_best_only=False)
 
   history = model.fit_generator(train_gen,
                                 samples_per_epoch = samples_per_epoch,
@@ -78,7 +78,7 @@ def train_model(model, data, labels,
 
   save_time = time.strftime("%Y%m%d%H%M%S")
 
-  model_saver = ModelCheckpoint(filepath="checkpoints/%s_weights_n%d_{epoch:02d}_{val_loss:.4f}.hdf5" % (save_time, len(data)), verbose=1, save_best_only=True)
+  model_saver = ModelCheckpoint(filepath="checkpoints/%s_weights_n%d_{epoch:02d}_{val_loss:.4f}.hdf5" % (save_time, len(data)), verbose=1, save_best_only=False)
   history = model.fit(data, labels, nb_epoch = nb_epoch, verbose = 1, validation_data = validation_data, callbacks=[model_saver])
 
   print('history =', history.history)
