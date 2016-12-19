@@ -79,12 +79,18 @@ def read_data_gen(data, labels, batch_size=64):
     begin += batch_size
 
 
-def pump_image_data(data, resize_factor = 1.0):
+def pump_image_data(data, resize_factor = 1.0, crop_bottom = None):
   data_img = []
   for img_file in data:
     img = np.asarray(Image.open(img_file))
+
+    # Crop bottom part (remove car)
+    if crop_bottom:
+      img = img[:-crop_bottom,:]
+      # print('img = : ', img.shape)
+
     img = imresize(img, 1.0 / resize_factor)
-    # print('img = %f : ', (resize_factor, img.shape))
+    #
     img = normalize(img)
     data_img.append(img)
   # data_img = [np.asarray(Image.open(img_file)) for img_file in data]
@@ -108,10 +114,10 @@ def extend_with_flipped(data, labels, ratio=0.3):
   nlabels = np.concatenate([labels, labels_flipped])
   return ndata, nlabels
 
-def read_image_gen(data_gen, resize_factor = 1.0, flip_images = False, flip_images_ratio = 0.3):
+def read_image_gen(data_gen, resize_factor = 1.0, flip_images = False, flip_images_ratio = 0.3, crop_bottom = None):
   for X_batch_files, y_batch in data_gen:
     # X_image = [np.asarray(Image.open(img_file)) for img_file in X_batch]
-    X_image = pump_image_data(X_batch_files, resize_factor)
+    X_image = pump_image_data(X_batch_files, resize_factor, crop_bottom)
     # y_image = y_batch
     # X_image = np.asarray(X_image)
     y_image = np.asarray(y_batch)
@@ -135,27 +141,11 @@ def read_image_gen(data_gen, resize_factor = 1.0, flip_images = False, flip_imag
     # print(y_batch[:3])
     yield X_image, y_image
 
-
-def load_all_datasets(base_path, remove_jerky = False, left_right = False):
-  datasets = [
-    os.path.join(base_path, 'train1-complete'),
-    os.path.join(base_path, 'train2-complete'),
-    os.path.join(base_path, 'train3-complete'),
-    os.path.join(base_path, 'train4-complete'),
-    os.path.join(base_path, 'train5-complete'),
-    os.path.join(base_path, 'train6-complete'),
-    os.path.join(base_path, 'train7-complete'),
-    os.path.join(base_path, 'train8-complete'),
-    os.path.join(base_path, 'train9-complete'),
-    os.path.join(base_path, 'train10-complete'),
-    os.path.join(base_path, 'data')
-  ]
-
+def load_datasets(base_path, datasets, remove_jerky = False, left_right = False):
   X_all_data = []
-
   y_all_data = []
-
-  for dataset_path in datasets:
+  datasets_path = [os.path.join(base_path, p) for p in datasets]
+  for dataset_path in datasets_path:
     if os.path.isdir(dataset_path):
       X_data_files, y_data = load_dataset(dataset_path, remove_jerky, left_right)
       X_all_data.extend(X_data_files)
@@ -163,6 +153,28 @@ def load_all_datasets(base_path, remove_jerky = False, left_right = False):
 
   return X_all_data, y_all_data
 
+
+def load_all_datasets(base_path, remove_jerky = False, left_right = False):
+  datasets = [
+    'train1-complete',
+    'train2-complete',
+    'train3-complete',
+    'train4-complete',
+    'train5-complete',
+    'train6-complete',
+    'train7-complete',
+    'train8-complete',
+    'train9-complete',
+    'train10-complete',
+    'data'
+  ]
+
+  return load_datasets(base_path, datasets, remove_jerky = remove_jerky, left_right = left_right)
+
+def clip_angle(ang):
+  if ang < 0:
+    return max(ang, -1.0)
+  return min(ang, 1.0)
 
 def load_dataset(dataset_path, remove_jerky = False, left_right=False):
     X_center_files, X_left_files, X_right_files, y_data = bc_read_data(dataset_path)
@@ -200,8 +212,10 @@ def load_dataset(dataset_path, remove_jerky = False, left_right=False):
           y_left_data.append(0.1)
           y_right_data.append(-0.1)
         else:
-          y_left_data.append(angle + abs(0.75 * angle))
-          y_right_data.append(angle - abs(0.75 * angle))
+          l_angle = clip_angle(angle + abs(0.75 * angle))
+          r_angle = clip_angle(angle - abs(0.75 * angle))
+          y_left_data.append(l_angle)
+          y_right_data.append(r_angle)
 
       X_data_files.extend(X_left_files)
       X_data_files.extend(X_right_files)

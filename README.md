@@ -52,6 +52,8 @@ https://www.dropbox.com/sh/4t4o7srfbzshydf/AACjodIHwsjpMxmpxQfavcuCa?dl=0
 + flip images
 + train on a small data first and make it drive to the bridge and further
 + use right/left image (optional)
-- play with dropout for bigger angles
++ play with dropout for bigger angles
+- add more augmentation in generator
+- make it drive through the turn after the bridge
 - smooth angle
 - make it all drive :)

@@ -24,6 +24,7 @@ sio = socketio.Server()
 app = Flask(__name__)
 model = None
 resize_factor = 1.0
+crop_bottom = 25
 prev_image_array = None
 
 @sio.on('telemetry')
@@ -38,6 +39,10 @@ def telemetry(sid, data):
     imgString = data["image"]
     image = Image.open(BytesIO(base64.b64decode(imgString)))
     image_array = np.asarray(image)
+
+    # Crop bottom (remove car image)
+    if crop_bottom:
+      image_array = image_array[:-crop_bottom,:]
 
     # print('rf = ', resize_factor)
     # Resize image acc to resize_factor
@@ -84,9 +89,11 @@ if __name__ == '__main__':
         help='Path to model definition json. Model weights should be on the same path or specify --restore_weights.')
     parser.add_argument('--restore_weights', type=str, help='Restore weights from checkpoint')
     parser.add_argument('--resize_factor', type=float, default=1, help='Resize image factor - default 1.0')
+    parser.add_argument('--crop_bottom', type=int, default=0, help='Crop bottom. to remove car image')
     args = parser.parse_args()
 
     resize_factor = args.resize_factor
+    crop_bottom = args.crop_bottom
 
     with open(args.model, 'r') as jfile:
         model = model_from_json(jfile.read())

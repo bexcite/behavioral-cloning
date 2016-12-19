@@ -122,10 +122,10 @@ jerky_sections['train6-complete'] = [
   [251, 261],
   [311, 321],
   [366, 372],
-  [396, 400],
+  [396, 400], # 431 - 448
   [487, 498],
   [546, 555],
-  [565, 572],
+  [565, 587],
   [603, 618],
   [678, 691],
   [706, 716],
@@ -376,7 +376,7 @@ jerky_sections['train9-complete'] = [
   [3416, 3435],
   [3455, 3461],
   [3488, 3507],
-  [3576, 3589],
+  [3576, 3610],
   [3653, 3694]
 ]
 jerky_sections['train10-complete'] = [
@@ -399,6 +399,11 @@ jerky_sections['train10-complete'] = [
   [627, 639],
   [658, 705]
 ]
+jerky_sections['data'] = [
+  [2, 29],
+  [5331, 5337]
+]
+
 
 def remove_jerky_sections(center_data, left_data, right_data, labels_data, dataset_path):
   # Idxs to remove from dataset (bad driver:))
