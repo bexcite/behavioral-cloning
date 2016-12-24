@@ -57,3 +57,7 @@ https://www.dropbox.com/sh/4t4o7srfbzshydf/AACjodIHwsjpMxmpxQfavcuCa?dl=0
 - make it drive through the turn after the bridge
 - smooth angle
 - make it all drive :)
+
+Links
+https://medium.com/@vivek.yadav/using-augmentation-to-mimic-human-driving-496b569760a9#.d2lciuc14
+https://medium.com/@KunfengChen/training-and-validation-loss-mystery-in-behavioral-cloning-for-cnn-from-udacity-sdc-project-3-dfe3eda596ba#.qor639o5c

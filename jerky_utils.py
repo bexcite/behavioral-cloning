@@ -404,6 +404,16 @@ jerky_sections['data'] = [
   [5331, 5337]
 ]
 
+jerky_sections['corner2'] = [
+  [0, 511],
+  [626, 1022]
+]
+
+jerky_sections['corner3'] = [
+  [0, 511],
+  [742, 773]
+]
+
 
 def remove_jerky_sections(center_data, left_data, right_data, labels_data, dataset_path):
   # Idxs to remove from dataset (bad driver:))

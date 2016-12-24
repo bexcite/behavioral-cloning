@@ -251,19 +251,19 @@ def create_model_conv5(resize_factor = 1.0, crop_bottom = None):
     print('model hh = ', hh)
     print('model ww = ', ww)
 
-    dropout = 0.5 # / resize_factor
+    dropout = 0.5 / resize_factor
     print('model dropout = ', dropout)
 
     a = Input(shape=(hh, ww, ch))
 
-    f = Convolution2D(3, 1, 1,
-                      border_mode='valid',
-                      subsample=(1, 1))(a)
+    # f = Convolution2D(3, 1, 1,
+    #                   border_mode='valid',
+    #                   subsample=(1, 1))(a)
 
     # Convolution 1
     f = Convolution2D(32, 4, 4,
                           border_mode='valid',
-                          subsample=(2, 2))(f)
+                          subsample=(2, 2))(a)
     f = Activation('elu')(f)
     # f = MaxPooling2D(pool_size=(2, 2))(f)
     f = Dropout(dropout)(f)

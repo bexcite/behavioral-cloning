@@ -156,6 +156,10 @@ def main():
     print('Load ... datasets.')
     ds = ['train1-complete', 'train2-complete', 'train4-complete', 'train6-complete', 'train9-complete', 'train10-complete', 'data']
     X_data_files, y_data = load_datasets(base_path, ds, remove_jerky = remove_jerky, left_right = left_right_images)
+  elif dataset_path == 'corners':
+    print('Load Corners datasets.')
+    ds = ['data', 'corner2', 'corner3', 'train1-complete', 'train2-complete', 'train4-complete', 'train6-complete', 'train9-complete', 'train10-complete']
+    X_data_files, y_data = load_datasets(base_path, ds, remove_jerky = remove_jerky, left_right = left_right_images)
   else:
     X_data_files, y_data = load_dataset(dataset_path, remove_jerky = remove_jerky, left_right = left_right_images)
 

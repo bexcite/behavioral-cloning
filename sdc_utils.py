@@ -209,8 +209,8 @@ def load_dataset(dataset_path, remove_jerky = False, left_right=False):
       '''
       for ldata, rdata, angle in zip(X_left_files, X_right_files, y_data):
         if angle == 0:
-          y_left_data.append(0.1)
-          y_right_data.append(-0.1)
+          y_left_data.append(0.15)
+          y_right_data.append(-0.15)
         else:
           l_angle = clip_angle(angle + abs(0.75 * angle))
           r_angle = clip_angle(angle - abs(0.75 * angle))
