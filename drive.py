@@ -12,7 +12,7 @@ from PIL import ImageOps
 from flask import Flask, render_template
 from io import BytesIO
 
-from sdc_utils import normalize
+from sdc_utils import normalize, resize_image
 
 from keras.models import model_from_json
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array
@@ -46,7 +46,9 @@ def telemetry(sid, data):
 
     # print('rf = ', resize_factor)
     # Resize image acc to resize_factor
-    image_array = imresize(image_array, 1.0 / resize_factor)
+
+    # image_array = imresize(image_array, 1.0 / resize_factor)
+    image_array = resize_image(image_array, resize_factor)
 
     transformed_image_array = image_array[None, :, :, :]
 

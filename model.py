@@ -248,10 +248,14 @@ def create_model_conv5(resize_factor = 1.0, crop_bottom = None):
 
     hh = int(hh // resize_factor)
     ww = int(w // resize_factor)
+
+    hh = ww
+
     print('model hh = ', hh)
     print('model ww = ', ww)
 
     dropout = 0.5 / resize_factor
+    # dropout = 0.2
     print('model dropout = ', dropout)
 
     a = Input(shape=(hh, ww, ch))

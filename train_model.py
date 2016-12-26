@@ -102,6 +102,7 @@ def main():
   parser.add_argument('--validation_split', type=float, default=0.15, help='Validation split - used for val+test combined')
   parser.add_argument('--lr', type=float, default=0.001, help='Learning rate - default 0.001')
   parser.add_argument('--resize_factor', type=float, default=1, help='Resize image factor - default 1.0')
+  parser.add_argument('--augment', type=float, default=0.0, help='Augment factor - default 0.0 - no augmentation')
   parser.add_argument('--crop_bottom', type=int, default=0, help='Crop bottom. to remove car image')
   parser.add_argument('--remove_jerky', default=False, action='store_true', help='Remove jerky sections if dataset name is present in jerky_utils.py')
   parser.add_argument('--flip_images', default=False, action='store_true', help='Flip images of all training data. Increse the size of train by 2x')
@@ -124,6 +125,7 @@ def main():
   flip_images_ratio = 0.3
   left_right_images = args.left_right_images
   crop_bottom = args.crop_bottom
+  augment = args.augment
 
 
   # This is a bad style ... but ... heh ...
@@ -148,6 +150,7 @@ def main():
   print('crop_bottom =', crop_bottom)
   print('flip_images =', flip_images)
   print('left_right_images =', left_right_images)
+  print('augment =', augment)
 
   if dataset_path == 'all':
     print('Load ALL datasets.')
@@ -190,16 +193,16 @@ def main():
 
   X_train_files, X_val_files, y_train, y_val = train_test_split(
       X_data_files, y_data,
-      test_size=validation_split,
-      random_state=13)
+      test_size=validation_split)
+      # random_state=13)
 
   X_val_files, X_test_files, y_val, y_test = train_test_split(
       X_val_files, y_val,
-      test_size=0.5,
-      random_state=17)
+      test_size=0.5)
+      # random_state=17)
 
-  X_val = pump_image_data(X_val_files, resize_factor, crop_bottom)
-  X_test = pump_image_data(X_test_files, resize_factor, crop_bottom)
+  X_val = pump_image_data(X_val_files, resize_factor, crop_bottom, norm=True)
+  X_test = pump_image_data(X_test_files, resize_factor, crop_bottom, norm=True)
 
   y_train = np.asarray(y_train)
   y_val = np.asarray(y_val)
@@ -225,8 +228,26 @@ def main():
     # X_train_files = np.asarray(X_train_files)[select_idxs]
     # X_train_files = X_train_files.tolist()
     # y_train = y_train[select_idxs]
-    X_train_files = X_train_files[:500]
-    y_train = y_train[:500]
+
+    corner1 = [5290, 5350]
+    corner2 = [6100, 6180]
+    corner3 = [6930, 7000]
+
+
+    X_train_files = []
+    X_train_files.extend(X_data_files[corner1[0]:corner1[1]])
+    X_train_files.extend(X_data_files[corner2[0]:corner2[1]])
+    X_train_files.extend(X_data_files[corner3[0]:corner3[1]])
+
+    y_train = []
+    y_train.extend(y_data[corner1[0]:corner1[1]])
+    y_train.extend(y_data[corner2[0]:corner2[1]])
+    y_train.extend(y_data[corner3[0]:corner3[1]])
+    y_train = np.asarray(y_train)
+
+    # X_train_files = X_train_files[:500]
+    # y_train = y_train[:500]
+
     print('X_train =', len(X_train_files))
     print('y_train =', len(y_train))
     X_val = X_val[:150]
@@ -239,9 +260,29 @@ def main():
   # X_val = X_val[:40]
   # y_val = y_val[:40]
 
+  # Attention mechanism
+  corners = [
+    [5290, 5350],
+    [5350, 5455], # second turn
+    [6100, 6180],
+    [6180, 6275], # second turn
+    [6930, 7000],
+    [7000, 7115]  # second turn
+  ]
+  attention = []
+  for c in corners:
+    attention.extend(range(c[0], c[1]))
+  print('Attention =', attention)
+
   # Prepare data generateors
-  data_gen = read_data_gen(X_train_files, y_train, batch_size = batch_size)
-  image_gen = read_image_gen(data_gen, resize_factor, flip_images, flip_images_ratio = flip_images_ratio, crop_bottom = crop_bottom)
+  data_gen = read_data_gen(X_train_files, y_train,
+      batch_size = batch_size,
+      all_data = (X_data_files, y_data),
+      attention = attention)
+  image_gen = read_image_gen(data_gen, resize_factor, flip_images,
+      flip_images_ratio = flip_images_ratio,
+      crop_bottom = crop_bottom,
+      augment = augment)
 
   print('Creating model.')
   model = create_model(model_type, resize_factor, crop_bottom)
@@ -255,6 +296,8 @@ def main():
 
   if not DEBUG:
     samples_per_epoch = len(X_train_files) * 1.33 if flip_images else len(X_train_files)
+    if augment > 0:
+      samples_per_epoch = int(samples_per_epoch * (1 + augment))
     model = train_model_on_gen(model, image_gen,
                         validation_data = (X_val, y_val),
                         lr = lr,
@@ -264,7 +307,7 @@ def main():
   else:
     # DEBUG
     print('pump resize_factor = ', resize_factor)
-    X_train = pump_image_data(X_train_files, resize_factor, crop_bottom)
+    X_train = pump_image_data(X_train_files, resize_factor, crop_bottom, norm=True)
     if flip_images:
       X_train, y_train = extend_with_flipped(X_train, y_train)
       # X_val, y_val = extend_with_flipped(X_val, y_val)
@@ -282,8 +325,17 @@ def main():
 
   print('Inference on train data ...')
 
-  sample = pump_image_data(X_train_files[:100] if len(X_train_files) > 100 else X_train_files, resize_factor, crop_bottom)
-  labels_sample = y_train[:100] if len(y_train) > 100 else y_train
+
+
+  corner = corners[1]
+
+  # sample = pump_image_data(X_train_files[:100] if len(X_train_files) > 100 else X_train_files, resize_factor, crop_bottom, norm=True)
+  # labels_sample = y_train[:100] if len(y_train) > 100 else y_train
+
+  sample = pump_image_data(X_data_files[corner[0]:corner[1]], resize_factor, crop_bottom, norm=True)
+  labels_sample = y_data[corner[0]:corner[1]]
+
+
 
   # if DEBUG:
   #   sample = pump_image_data(X_train_files)
@@ -304,7 +356,7 @@ def main():
     plt.title("Model type: %s, RMSE: %.2f" % (model_type, rmse))
     plt.savefig('graphs/%s' % pic_name)
 
-  pic_name = "%s_%s_train.png" % (model_type, save_time)
+  pic_name = "%s_%s_train_corner.png" % (model_type, save_time)
   make_fig(model_type, rmse, pic_name, labels_sample, steering_angle)
 
   # Test only

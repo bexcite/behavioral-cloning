@@ -12,7 +12,7 @@ import numpy as np
 import math
 from moviepy.editor import ImageSequenceClip
 from sdc_utils import bc_read_data, normalize
-from sdc_utils import load_dataset, load_all_datasets
+from sdc_utils import load_dataset, load_all_datasets, load_datasets
 from jerky_utils import remove_jerky_sections
 
 DEBUG = 0
@@ -58,6 +58,7 @@ def main():
   # parse arguments
   parser = argparse.ArgumentParser(description="Making video from provided dataset folder")
   parser.add_argument('--dataset', type=str, help='dataset folder with csv file and image folders')
+  parser.add_argument('--base_path', type=str, default='../../../sdc/behavioral-cloning', help='Base datasets path - required for "all" dataset')
   parser.add_argument('--output', type=str, default='movie.mp4', help='output movie file')
   parser.add_argument('--remove_jerky', default=False, action='store_true', help='Remove jerky sections if dataset name is present in jerky_utils.py')
   parser.add_argument('--left_right_images', default=False, action='store_true', help='Load left and right images into training data. Increse the size of train by 3x')
@@ -65,6 +66,7 @@ def main():
   args = parser.parse_args()
 
   dataset_path = args.dataset
+  base_path = args.base_path
   output_file = args.output
   remove_jerky = args.remove_jerky
   left_right_images = args.left_right_images
@@ -78,7 +80,12 @@ def main():
 
   if dataset_path == 'all':
     print('Load ALL datasets.')
-    X_data_files, y_data = load_all_datasets(remove_jerky = remove_jerky, left_right = left_right_images)
+    X_data_files, y_data = load_all_datasets(base_path, remove_jerky = remove_jerky, left_right = left_right_images)
+  elif dataset_path == 'corners':
+    print('Load Corners datasets.')
+    ds = ['data', 'corner2', 'corner3', 'train1-complete', 'train2-complete', 'train4-complete', 'train6-complete', 'train9-complete', 'train10-complete']
+    X_data_files, y_data = load_datasets(base_path, ds, remove_jerky = remove_jerky, left_right = left_right_images)
+
   else:
     X_data_files, y_data = load_dataset(dataset_path, remove_jerky = remove_jerky, left_right = left_right_images)
 
