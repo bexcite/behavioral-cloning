@@ -324,7 +324,9 @@ def main():
 
     for e in range(nb_epoch):
 
-      small_prob_tr = small_prob_tr_init * 1. / (e + 1.)
+      # small_prob_tr = small_prob_tr_init * 1. / (e + 1)
+      if e > 0:
+        small_prob_tr = small_prob_tr / 1.5
 
       lr = lr * (1. / (1. + 0.001 * e))
 

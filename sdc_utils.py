@@ -309,13 +309,13 @@ def load_dataset(dataset_path, remove_jerky = False, left_right=False):
       '''
       for ldata, rdata, angle in zip(X_left_files, X_right_files, y_data):
         if angle == 0:
-          y_left_data.append(0.10)
-          y_right_data.append(-0.10)
+          y_left_data.append(0.1)
+          y_right_data.append(-0.1)
         else:
           # l_angle = clip_angle(angle + abs(0.75 * angle))
           # r_angle = clip_angle(angle - abs(0.75 * angle))
-          l_angle = clip_angle(angle + 0.10)
-          r_angle = clip_angle(angle - 0.10)
+          l_angle = clip_angle(angle + 0.1)
+          r_angle = clip_angle(angle - 0.1)
           y_left_data.append(l_angle)
           y_right_data.append(r_angle)
 
@@ -371,7 +371,7 @@ def random_trans(img, steer, trans_range):
     # Translation
     tr_x = trans_range*np.random.uniform() - trans_range / 2
     # steer_ang = steer + tr_x/trans_range * 2 * .1 # 160px = 0.1 angle (or 0.15)
-    steer_ang = steer + tr_x/160.0 * 0.10 # 160px = 0.1 angle
+    steer_ang = steer + tr_x/160.0 * 0.1 # 160px = 0.1 angle
     tr_y = 40 * np.random.uniform() - 40 / 2
     #tr_y = 0
     Trans_M = np.float32([[1,0,tr_x],[0,1,tr_y]])
