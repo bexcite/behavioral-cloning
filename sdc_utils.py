@@ -370,7 +370,8 @@ def random_brightness(img):
 def random_trans(img, steer, trans_range):
     # Translation
     tr_x = trans_range*np.random.uniform() - trans_range / 2
-    steer_ang = steer + tr_x/trans_range * 2 * .1 # 160px = 0.1 angle
+    # steer_ang = steer + tr_x/trans_range * 2 * .1 # 160px = 0.1 angle (or 0.15)
+    steer_ang = steer + tr_x/160.0 * 0.10 # 160px = 0.1 angle
     tr_y = 40 * np.random.uniform() - 40 / 2
     #tr_y = 0
     Trans_M = np.float32([[1,0,tr_x],[0,1,tr_y]])
