@@ -56,6 +56,9 @@ https://www.dropbox.com/sh/4t4o7srfbzshydf/AACjodIHwsjpMxmpxQfavcuCa?dl=0
 - add more augmentation in generator
 - make it drive through the turn after the bridge
 - smooth angle
+- change augmentation to 0.5
+- change left-right images shift to constant 0.15, 0.08
+- change small_tr to 0.2
 - make it all drive :)
 
 Links

@@ -64,7 +64,7 @@ def bc_read_data(data_folder):
   return X_center_data, X_left_data, X_right_data, y_data
 
 
-def read_data_gen(data, labels, batch_size=64, all_data = None, attention = None):
+def read_data_gen(data, labels, batch_size=64, all_data = None, attention = None, small_prob_tr = 1, small_tr = 0.1):
   if attention is not None:
     attention = np.asarray(attention)
   size = len(data)
@@ -76,17 +76,35 @@ def read_data_gen(data, labels, batch_size=64, all_data = None, attention = None
 
     for i in range(batch_size):
       ridx = np.random.randint(0, size)
-      batch_data[i] = data[ridx]
-      batch_labels[i] = labels[ridx]
+      d = data[ridx]
+      y = labels[ridx]
 
+      # print('y = ', y)
+      if abs(y) < small_tr:
+        # print('small')
+        keep_small_prob = np.random.uniform()
+        # print('keep_small_prob = ', keep_small_prob)
+        if keep_small_prob < small_prob_tr:
+          # print('change')
+          while abs(y) < small_tr:
+            ridx = np.random.randint(0, size)
+            d = data[ridx]
+            y = labels[ridx]
+            # print('change y=', y)
+
+      '''
       if all_data is not None and attention is not None:
         att_prob = np.random.uniform()
         # print('att_prob =', att_prob)
         if att_prob < 0.1:
           att = np.random.choice(attention)
           # print('Apply attention mechanism %.3f - [%d]' % (att_prob, att))
-          batch_data[i] = all_data[0][att]
-          batch_labels[i] = all_data[1][att]
+          d = all_data[0][att]
+          y = all_data[1][att]
+      '''
+
+      batch_data[i] = d
+      batch_labels[i] = y
 
 
     # print('batch_data =', batch_data)
@@ -157,7 +175,7 @@ def extend_with_flipped(data, labels, ratio=0.3):
   nlabels = np.concatenate([labels, labels_flipped])
   return ndata, nlabels
 
-def read_image_gen(data_gen, resize_factor = 1.0, flip_images = False, flip_images_ratio = 0.3, crop_bottom = None, augment = 0.0):
+def read_image_gen(data_gen, resize_factor = 1.0, flip_images = 0.0, crop_bottom = None, augment = 0.0):
   for X_batch_files, y_batch in data_gen:
     # X_image = [np.asarray(Image.open(img_file)) for img_file in X_batch]
     X_image = pump_image_data(X_batch_files, 1.0, crop_bottom)
@@ -165,8 +183,8 @@ def read_image_gen(data_gen, resize_factor = 1.0, flip_images = False, flip_imag
     # X_image = np.asarray(X_image)
     y_image = np.asarray(y_batch)
 
-    if flip_images:
-      X_image, y_image = extend_with_flipped(X_image, y_image, ratio=flip_images_ratio)
+    if flip_images > 0:
+      X_image, y_image = extend_with_flipped(X_image, y_image, ratio=flip_images)
       # X_image_flipped = np.fliplr(np.copy(X_image))
       # y_image_flipped = -1.0 * np.copy(y_image)
       # X_image.append(X_image_flipped)
@@ -291,11 +309,13 @@ def load_dataset(dataset_path, remove_jerky = False, left_right=False):
       '''
       for ldata, rdata, angle in zip(X_left_files, X_right_files, y_data):
         if angle == 0:
-          y_left_data.append(0.15)
-          y_right_data.append(-0.15)
+          y_left_data.append(0.10)
+          y_right_data.append(-0.10)
         else:
-          l_angle = clip_angle(angle + abs(0.75 * angle))
-          r_angle = clip_angle(angle - abs(0.75 * angle))
+          # l_angle = clip_angle(angle + abs(0.75 * angle))
+          # r_angle = clip_angle(angle - abs(0.75 * angle))
+          l_angle = clip_angle(angle + 0.10)
+          r_angle = clip_angle(angle - 0.10)
           y_left_data.append(l_angle)
           y_right_data.append(r_angle)
 
@@ -350,7 +370,7 @@ def random_brightness(img):
 def random_trans(img, steer, trans_range):
     # Translation
     tr_x = trans_range*np.random.uniform() - trans_range / 2
-    steer_ang = steer + tr_x/trans_range * 2 * .1
+    steer_ang = steer + tr_x/trans_range * 2 * .1 # 160px = 0.1 angle
     tr_y = 40 * np.random.uniform() - 40 / 2
     #tr_y = 0
     Trans_M = np.float32([[1,0,tr_x],[0,1,tr_y]])

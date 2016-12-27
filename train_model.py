@@ -41,26 +41,25 @@ def train_model_on_gen(model, train_gen,
       lr = 0.001,
       samples_per_epoch = None,
       batch_size = None,
-      nb_epoch = 1):
+      nb_epoch = 1,
+      callbacks = None):
 
   adam = Adam(lr=lr, decay=0.1)
   model.compile(optimizer=adam, loss="mse", metrics=['accuracy'])
 
   # samples_per_epoch = (samples_per_epoch // batch_size) * batch_size
 
-  save_time = time.strftime("%Y%m%d%H%M%S")
 
-  model_saver = ModelCheckpoint(filepath="checkpoints/%s_weights_n%d_{epoch:02d}_{val_loss:.4f}.hdf5" % (save_time, samples_per_epoch), verbose=1, save_best_only=False)
 
   history = model.fit_generator(train_gen,
                                 samples_per_epoch = samples_per_epoch,
                                 nb_epoch = nb_epoch,
                                 verbose = 1,
                                 validation_data = validation_data,
-                                callbacks=[model_saver])
+                                callbacks=callbacks)
 
-  print('history =', history.history)
-  print("metrics_name =", model.metrics_names)
+  # print('history =', history.history)
+  # print("metrics_name =", model.metrics_names)
 
   return model
 
@@ -81,10 +80,36 @@ def train_model(model, data, labels,
   model_saver = ModelCheckpoint(filepath="checkpoints/%s_weights_n%d_{epoch:02d}_{val_loss:.4f}.hdf5" % (save_time, len(data)), verbose=1, save_best_only=False)
   history = model.fit(data, labels, nb_epoch = nb_epoch, verbose = 1, validation_data = validation_data, callbacks=[model_saver])
 
-  print('history =', history.history)
-  print("metrics_name =", model.metrics_names)
+  # print('history =', history.history)
+  # print("metrics_name =", model.metrics_names)
 
   return model
+
+
+def make_fig(model_type, rmse, pic_name, target_data, predict_data):
+  plt.figure(figsize = (32, 8))
+  plt.plot(target_data, 'r.-', label='target')
+  plt.plot(predict_data, 'b^-', label='predict')
+  plt.legend(loc='best')
+  plt.title("Model type: %s, RMSE: %.4f" % (model_type, rmse))
+  plt.savefig('graphs/%s' % pic_name)
+
+
+def test_model(model, data, labels, save_time = 'no_time', test_name = 'no_name', model_type = '', limit = True):
+  steering_angle = model.predict(data)
+  # print('predicted steering_angle =', steering_angle)
+  # print('labels =', labels)
+  rmse = np.sqrt(np.mean((steering_angle-labels)**2))
+  print("%s model evaluated RMSE: %f" % (test_name, rmse))
+
+  # save_time = time.strftime("%Y%m%d%H%M%S")
+
+  if limit:
+    labels = labels[:100] if len(labels) > 100 else labels
+    steering_angle = steering_angle[:100] if len(steering_angle) > 100 else steering_angle
+
+  pic_name = "%s_%s_%s.png" % (model_type, save_time, test_name)
+  make_fig(model_type, rmse, pic_name, labels, steering_angle)
 
 
 def main():
@@ -103,9 +128,10 @@ def main():
   parser.add_argument('--lr', type=float, default=0.001, help='Learning rate - default 0.001')
   parser.add_argument('--resize_factor', type=float, default=1, help='Resize image factor - default 1.0')
   parser.add_argument('--augment', type=float, default=0.0, help='Augment factor - default 0.0 - no augmentation')
+  parser.add_argument('--small_prob_tr', type=float, default=1.0, help='Small Probability Threshold - default 1.0 - drop small first')
   parser.add_argument('--crop_bottom', type=int, default=0, help='Crop bottom. to remove car image')
   parser.add_argument('--remove_jerky', default=False, action='store_true', help='Remove jerky sections if dataset name is present in jerky_utils.py')
-  parser.add_argument('--flip_images', default=False, action='store_true', help='Flip images of all training data. Increse the size of train by 2x')
+  parser.add_argument('--flip_images', type=float, default=0.0, help='Flip images of all training data. Increse the size of train by 1 + flip_images')
   parser.add_argument('--left_right_images', default=False, action='store_true', help='Load left and right images into training data. Increse the size of train by 3x')
 
   args = parser.parse_args()
@@ -122,11 +148,11 @@ def main():
   lr = args.lr
   resize_factor = args.resize_factor
   flip_images = args.flip_images
-  flip_images_ratio = 0.3
+  # flip_images_ratio = 0.3
   left_right_images = args.left_right_images
   crop_bottom = args.crop_bottom
   augment = args.augment
-
+  small_prob_tr = args.small_prob_tr
 
   # This is a bad style ... but ... heh ...
   global DEBUG
@@ -255,10 +281,11 @@ def main():
     print('X_val =', X_val.shape)
     print('y_val =', y_val.shape)
 
-  # X_train_files = X_train_files[:100]
-  # y_train = y_train[:100]
-  # X_val = X_val[:40]
-  # y_val = y_val[:40]
+  # Test limitations
+  # X_train_files = X_train_files[:1000]
+  # y_train = y_train[:1000]
+  # X_val = X_val[:400]
+  # y_val = y_val[:400]
 
   # Attention mechanism
   corners = [
@@ -274,15 +301,6 @@ def main():
     attention.extend(range(c[0], c[1]))
   print('Attention =', attention)
 
-  # Prepare data generateors
-  data_gen = read_data_gen(X_train_files, y_train,
-      batch_size = batch_size,
-      all_data = (X_data_files, y_data),
-      attention = attention)
-  image_gen = read_image_gen(data_gen, resize_factor, flip_images,
-      flip_images_ratio = flip_images_ratio,
-      crop_bottom = crop_bottom,
-      augment = augment)
 
   print('Creating model.')
   model = create_model(model_type, resize_factor, crop_bottom)
@@ -295,21 +313,72 @@ def main():
   print('Train model ...')
 
   if not DEBUG:
-    samples_per_epoch = len(X_train_files) * 1.33 if flip_images else len(X_train_files)
+
+    samples_per_epoch = len(X_train_files) * (1 + flip_images)
     if augment > 0:
       samples_per_epoch = int(samples_per_epoch * (1 + augment))
-    model = train_model_on_gen(model, image_gen,
-                        validation_data = (X_val, y_val),
-                        lr = lr,
-                        samples_per_epoch = samples_per_epoch,
-                        nb_epoch = nb_epoch,
-                        batch_size = batch_size)
+
+    # small_prob_tr = 1.
+
+    small_prob_tr_init = small_prob_tr
+
+    for e in range(nb_epoch):
+
+      small_prob_tr = small_prob_tr_init * 1. / (e + 1.)
+
+      lr = lr * (1. / (1. + 0.001 * e))
+
+      print("E -> %d/%d (lr = %.5f, small_prob_tr = %.3f)" % (e+1, nb_epoch, lr, small_prob_tr))
+
+      # Prepare data generateors
+      data_gen = read_data_gen(X_train_files, y_train,
+          batch_size = batch_size,
+          all_data = (X_data_files, y_data),
+          attention = attention,
+          small_prob_tr = small_prob_tr,
+          small_tr = 0.1)
+      image_gen = read_image_gen(data_gen, resize_factor, flip_images,
+          crop_bottom = crop_bottom,
+          augment = augment)
+
+
+      save_time = time.strftime("%Y%m%d%H%M%S")
+      model_saver = ModelCheckpoint(filepath="checkpoints/%s_%s_weights_n%d_%02d_{val_loss:.4f}.hdf5" % (model_type, save_time, samples_per_epoch, e), verbose=1, save_best_only=False)
+
+      model = train_model_on_gen(model, image_gen,
+                          validation_data = (X_val, y_val),
+                          lr = lr,
+                          samples_per_epoch = samples_per_epoch,
+                          nb_epoch = 1,
+                          batch_size = batch_size,
+                          callbacks = [model_saver])
+
+
+      # Test model after epoch
+      # corner = corners[0]
+      # corner.extend()
+      sample = X_data_files[corners[0][0]:corners[0][1]]
+      sample.extend(X_data_files[corners[1][0]:corners[1][1]])
+      sample = pump_image_data(sample, resize_factor, crop_bottom, norm=True)
+      labels_sample = y_data[corners[0][0]:corners[0][1]]
+      labels_sample = np.concatenate([labels_sample, y_data[corners[1][0]:corners[1][1]]])
+      test_model(model, sample, labels_sample,
+          save_time = save_time,
+          test_name = 'train_corner_%02d' % e,
+          model_type = model_type,
+          limit = False)
+      test_model(model, X_test, y_test,
+          save_time = save_time,
+          test_name = 'test_%02d' % e,
+          model_type = model_type)
+
+
   else:
     # DEBUG
     print('pump resize_factor = ', resize_factor)
     X_train = pump_image_data(X_train_files, resize_factor, crop_bottom, norm=True)
-    if flip_images:
-      X_train, y_train = extend_with_flipped(X_train, y_train)
+    if flip_images > 0:
+      X_train, y_train = extend_with_flipped(X_train, y_train, ratio = flip_images)
       # X_val, y_val = extend_with_flipped(X_val, y_val)
 
     # print('X_train =', X_train)
@@ -327,42 +396,46 @@ def main():
 
 
 
-  corner = corners[1]
-
   # sample = pump_image_data(X_train_files[:100] if len(X_train_files) > 100 else X_train_files, resize_factor, crop_bottom, norm=True)
   # labels_sample = y_train[:100] if len(y_train) > 100 else y_train
 
+
+  corner = corners[1]
   sample = pump_image_data(X_data_files[corner[0]:corner[1]], resize_factor, crop_bottom, norm=True)
   labels_sample = y_data[corner[0]:corner[1]]
 
+  save_time = time.strftime("%Y%m%d%H%M%S")
 
+  test_model(model, sample, labels_sample,
+      save_time = save_time,
+      test_name = 'train_corner',
+      model_type = model_type,
+      limit = False)
 
   # if DEBUG:
   #   sample = pump_image_data(X_train_files)
   #   labels_sample = y_train
+  '''
   steering_angle = model.predict(sample)
   print('predicted steering_angle =', steering_angle)
   print('labels =', labels_sample)
   rmse = np.sqrt(np.mean((steering_angle-labels_sample)**2))
   print("Train model evaluated RMSE:", rmse)
 
-  save_time = time.strftime("%Y%m%d%H%M%S")
-
-  def make_fig(model_type, rmse, pic_name, target_data, predict_data):
-    plt.figure(figsize = (32, 8))
-    plt.plot(target_data, 'r.-', label='target')
-    plt.plot(predict_data, 'b^-', label='predict')
-    plt.legend(loc='best')
-    plt.title("Model type: %s, RMSE: %.2f" % (model_type, rmse))
-    plt.savefig('graphs/%s' % pic_name)
-
   pic_name = "%s_%s_train_corner.png" % (model_type, save_time)
   make_fig(model_type, rmse, pic_name, labels_sample, steering_angle)
+  '''
 
   # Test only
   # X_test = X_test[:100] if len(X_test) > 100 else X_test
   # y_test = y_test[:100] if len(y_test) > 100 else y_test
 
+  test_model(model, X_test, y_test,
+      save_time = save_time,
+      test_name = 'test',
+      model_type = model_type)
+
+  '''
   print('Evaluate model on test data batch.')
   test_predicts = model.predict(X_test)
   rmse = np.sqrt(np.mean((test_predicts-y_test)**2))
@@ -372,6 +445,7 @@ def main():
   y_test = y_test[:100] if len(y_test) > 100 else y_test
   test_predicts = test_predicts[:100] if len(test_predicts) > 100 else test_predicts
   make_fig(model_type, rmse, pic_name, y_test, test_predicts)
+  '''
 
 
 if __name__ == '__main__':
