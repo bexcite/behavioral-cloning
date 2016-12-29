@@ -1,3 +1,9 @@
+'''
+Helper functions to remove sections from the datasets.
+Used for cleaning data from bad driving and narrowing experiments.
+
+'''
+
 import os
 import numpy as np
 

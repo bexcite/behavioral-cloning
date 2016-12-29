@@ -89,12 +89,6 @@ def main():
   else:
     X_data_files, y_data = load_dataset(dataset_path, remove_jerky = remove_jerky, left_right = left_right_images)
 
-  #
-  # if remove_jerky:
-  #   print('Remove jerky sections ...')
-  #   X_data_files, y_data = remove_jerky_sections(X_data_files, y_data, dataset_path)
-
-
   print('len X_data_files =', len(X_data_files))
   print('len y_data =', len(y_data))
 

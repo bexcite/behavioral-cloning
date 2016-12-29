@@ -1,5 +1,7 @@
 '''
-Trains a given model on a given dataset.
+Trains a given model on a given dataset. There a lot of params.
+
+Use: --help to learn about them.
 
 '''
 
@@ -8,14 +10,11 @@ import argparse
 import numpy as np
 import time
 import os
-# import math
-# from moviepy.editor import ImageSequenceClip
 from sklearn.model_selection import train_test_split
 from sdc_utils import bc_read_data, normalize, pump_image_data
 from sdc_utils import extend_with_flipped
 from sdc_utils import read_data_gen, read_image_gen
 from sdc_utils import load_dataset, load_all_datasets, load_datasets
-# from jerky_utils import remove_jerky_sections
 from model import create_model, create_model_linear, create_model_conv
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint
@@ -47,10 +46,6 @@ def train_model_on_gen(model, train_gen,
   adam = Adam(lr=lr, decay=0.1)
   model.compile(optimizer=adam, loss="mse", metrics=['accuracy'])
 
-  # samples_per_epoch = (samples_per_epoch // batch_size) * batch_size
-
-
-
   history = model.fit_generator(train_gen,
                                 samples_per_epoch = samples_per_epoch,
                                 nb_epoch = nb_epoch,
@@ -72,8 +67,6 @@ def train_model(model, data, labels,
 
   adam = Adam(lr=lr, decay=0.1) # decay=0.3, lr=1e-3
   model.compile(optimizer=adam, loss="mse", metrics=['accuracy'])
-
-  # samples_per_epoch = (samples_per_epoch // batch_size) * batch_size
 
   save_time = time.strftime("%Y%m%d%H%M%S")
 
@@ -215,7 +208,7 @@ def main():
   print('y80 = ', yn80)
 
 
-  print('Split Train/Val/Tetst')
+  print('Split Train/Val/Test')
 
   X_train_files, X_val_files, y_train, y_val = train_test_split(
       X_data_files, y_data,
@@ -247,7 +240,6 @@ def main():
   # make_video(X_test_files, y_test, 'movie-test.mp4')
 
 
-
   if DEBUG:
     print("DEBUG: reducing data")
     # select_idxs = [0, 4, 10]
@@ -258,7 +250,6 @@ def main():
     corner1 = [5290, 5350]
     corner2 = [6100, 6180]
     corner3 = [6930, 7000]
-
 
     X_train_files = []
     X_train_files.extend(X_data_files[corner1[0]:corner1[1]])
@@ -299,7 +290,7 @@ def main():
   attention = []
   for c in corners:
     attention.extend(range(c[0], c[1]))
-  print('Attention =', attention)
+  # print('Attention =', attention)
 
 
   print('Creating model.')
@@ -335,8 +326,8 @@ def main():
       # Prepare data generateors
       data_gen = read_data_gen(X_train_files, y_train,
           batch_size = batch_size,
-          all_data = (X_data_files, y_data),
-          attention = attention,
+          # all_data = (X_data_files, y_data),
+          # attention = attention,
           small_prob_tr = small_prob_tr,
           small_tr = 0.1)
       image_gen = read_image_gen(data_gen, resize_factor, flip_images,
@@ -359,6 +350,9 @@ def main():
       # Test model after epoch
       # corner = corners[0]
       # corner.extend()
+
+      # Test model on 2 difficult corners
+      # Draw prediction angles and calculare RMSE
       sample = X_data_files[corners[0][0]:corners[0][1]]
       sample.extend(X_data_files[corners[1][0]:corners[1][1]])
       sample = pump_image_data(sample, resize_factor, crop_bottom, norm=True)
@@ -414,40 +408,10 @@ def main():
       model_type = model_type,
       limit = False)
 
-  # if DEBUG:
-  #   sample = pump_image_data(X_train_files)
-  #   labels_sample = y_train
-  '''
-  steering_angle = model.predict(sample)
-  print('predicted steering_angle =', steering_angle)
-  print('labels =', labels_sample)
-  rmse = np.sqrt(np.mean((steering_angle-labels_sample)**2))
-  print("Train model evaluated RMSE:", rmse)
-
-  pic_name = "%s_%s_train_corner.png" % (model_type, save_time)
-  make_fig(model_type, rmse, pic_name, labels_sample, steering_angle)
-  '''
-
-  # Test only
-  # X_test = X_test[:100] if len(X_test) > 100 else X_test
-  # y_test = y_test[:100] if len(y_test) > 100 else y_test
-
   test_model(model, X_test, y_test,
       save_time = save_time,
       test_name = 'test',
       model_type = model_type)
-
-  '''
-  print('Evaluate model on test data batch.')
-  test_predicts = model.predict(X_test)
-  rmse = np.sqrt(np.mean((test_predicts-y_test)**2))
-  print("Test model evaluated RMSE:", rmse)
-
-  pic_name = "%s_%s_test.png" % (model_type, save_time)
-  y_test = y_test[:100] if len(y_test) > 100 else y_test
-  test_predicts = test_predicts[:100] if len(test_predicts) > 100 else test_predicts
-  make_fig(model_type, rmse, pic_name, y_test, test_predicts)
-  '''
 
 
 if __name__ == '__main__':

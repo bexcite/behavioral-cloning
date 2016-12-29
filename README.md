@@ -10,8 +10,10 @@ python video.py --dataset ../../../sdc/behavioral-cloning/train2-complete
 
 ```
 
-
+## Train the model
 ```
+python train_model.py --dataset corners --base_path ../../../sdc/behavioral-cloning --model cnn5 --validation_split 0.02 --batch_size=20 --remove_jerky --nb_epoch 10 --lr 0.001 --resize_factor 8.0 --left_right --augment 1.0 --small_prob_tr 1.0
+
 # Train latest
 python train_model.py --dataset all --base_path ../../../sdc/behavioral-cloning --restore_weights checkpoints/20161211005939_weights_n7902_28_0.0145-good.hdf5 --model cnn --batch_size=20 --nb_epoch 1
 
@@ -21,7 +23,11 @@ python train_model.py --dataset all --base_path ../data/reduced --restore_weight
 
 python train_model.py --dataset all --base_path ../data/reduced --model cnn3 --remove_jerky --validation_split 0.10 --batch_size=20 --nb_epoch 35
 
+```
 
+## Driving on the resulting model
+```
+python drive.py result/model_cnn5_rf8s.json --resize_factor 8.0 --restore_weights result/cnn5_rf8s_20161226175434_weights_n119958_01_0.0128_full_better3.hdf5
 ```
 
 ## Datasets

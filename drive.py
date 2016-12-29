@@ -1,3 +1,7 @@
+'''
+Runs server and infere model for testing.
+'''
+
 import argparse
 import base64
 import json
@@ -47,11 +51,12 @@ def telemetry(sid, data):
     # print('rf = ', resize_factor)
     # Resize image acc to resize_factor
 
-    # image_array = imresize(image_array, 1.0 / resize_factor)
+    # Resize image
     image_array = resize_image(image_array, resize_factor)
 
     transformed_image_array = image_array[None, :, :, :]
 
+    # Normalize
     norm_image_array = normalize(transformed_image_array)
 
     # print('image_array =', norm_image_array)
@@ -61,10 +66,8 @@ def telemetry(sid, data):
 
     # steering_angle = 0
 
-
-
     # The driving model currently just outputs a constant throttle. Feel free to edit this.
-    throttle = 0.3 #
+    throttle = 0.2 #
     print(steering_angle, throttle)
     send_control(steering_angle, throttle)
 

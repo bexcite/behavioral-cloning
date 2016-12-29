@@ -1,5 +1,7 @@
-# The script used to create and train the model
+'''
+The script used to create and train the model
 
+'''
 import numpy as np
 import tensorflow as tf
 import os
@@ -20,32 +22,48 @@ import cv2
 h, w, ch = 160, 320, 3
 
 
-def create_model_linear(resize_factor = 1.0):
+def create_model_linear(resize_factor = 1.0, crop_bottom = None):
 
-  hh = int(h // resize_factor)
-  ww = int(w // resize_factor)
+    if crop_bottom:
+      hh = h - crop_bottom
+    else:
+      hh = h
 
-  a = Input(shape=(h, w, ch))
-  f = Flatten()(a)
+    hh = int(hh // resize_factor)
+    ww = int(w // resize_factor)
 
-  # Fully Connected
-  f = Dense(128)(f)
-  f = Activation('tanh')(f)
+    # Make it square
+    hh = ww
 
-  b = Dense(1)(f)
-  model = Model(input=a, output=b)
-  return model
+    a = Input(shape=(hh, ww, ch))
+    f = Flatten()(a)
+
+    # Fully Connected
+    f = Dense(128)(f)
+    f = Activation('tanh')(f)
+
+    b = Dense(1)(f)
+    model = Model(input=a, output=b)
+    return model
 
 
 
-def create_model_conv(resize_factor = 1.0):
+def create_model_conv(resize_factor = 1.0, crop_bottom = None):
     nb_filters1 = 32
     nb_filters2 = 64
     kernel_size = (3, 3)
     pool_size = (2, 2)
 
-    hh = int(h // resize_factor)
+    if crop_bottom:
+      hh = h - crop_bottom
+    else:
+      hh = h
+
+    hh = int(hh // resize_factor)
     ww = int(w // resize_factor)
+
+    # Make it square
+    hh = ww
 
     a = Input(shape=(hh, ww, ch))
 
@@ -71,25 +89,28 @@ def create_model_conv(resize_factor = 1.0):
     f = Dense(128)(f)
     f = Activation('tanh')(f)
 
-    # Fully Connected 2
-    # f = Dense(128)(f)
-    # f = Activation('tanh')(f)
-
     # f = Dropout(0.5)(f)
 
     b = Dense(1)(f)
-    # b = Activation('sigmoid')(f)
     model = Model(input=a, output=b)
     return model
 
-def create_model_conv2(resize_factor = 1.0):
+def create_model_conv2(resize_factor = 1.0, crop_bottom = None):
     nb_filters1 = 32
     nb_filters2 = 64
     kernel_size = (5, 5)
     pool_size = (2, 2)
 
-    hh = int(h // resize_factor)
+    if crop_bottom:
+      hh = h - crop_bottom
+    else:
+      hh = h
+
+    hh = int(hh // resize_factor)
     ww = int(w // resize_factor)
+
+    # Make it square
+    hh = ww
 
     a = Input(shape=(hh, ww, ch))
 
@@ -115,27 +136,27 @@ def create_model_conv2(resize_factor = 1.0):
     f = Dense(512)(f)
     f = Activation('tanh')(f)
 
-    # Fully Connected 2
-    # f = Dense(128)(f)
-    # f = Activation('tanh')(f)
-
     # f = Dropout(0.5)(f)
 
     b = Dense(1)(f)
-    # b = Activation('sigmoid')(f)
     model = Model(input=a, output=b)
     return model
 
-def create_model_conv3(resize_factor = 1.0):
+def create_model_conv3(resize_factor = 1.0, crop_bottom = None):
     # ala comma.ai model
 
-    hh = int(h // resize_factor)
+    if crop_bottom:
+      hh = h - crop_bottom
+    else:
+      hh = h
+
+    hh = int(hh // resize_factor)
     ww = int(w // resize_factor)
-    # print('hh = ', hh)
-    # print('ww = ', ww)
+
+    # Make it square
+    hh = ww
 
     a = Input(shape=(hh, ww, ch))
-    # print('a =', a)
 
     # Convolution 1
     f = Convolution2D(16, 8, 8,
@@ -163,22 +184,25 @@ def create_model_conv3(resize_factor = 1.0):
     f = Dropout(0.5)(f)
     f = Activation('elu')(f)
 
-    # Fully Connected 2
-    # f = Dense(128)(f)
-    # f = Activation('tanh')(f)
-
     # f = Dropout(0.5)(f)
 
     b = Dense(1)(f)
-    # b = Activation('sigmoid')(f)
     model = Model(input=a, output=b)
     return model
 
-def create_model_conv4(resize_factor = 1.0):
+def create_model_conv4(resize_factor = 1.0, crop_bottom = None):
     # ala comma.ai model
 
-    hh = int(h // resize_factor)
+    if crop_bottom:
+      hh = h - crop_bottom
+    else:
+      hh = h
+
+    hh = int(hh // resize_factor)
     ww = int(w // resize_factor)
+
+    # Make it square
+    hh = ww
 
     a = Input(shape=(hh, ww, ch))
 
@@ -212,7 +236,6 @@ def create_model_conv4(resize_factor = 1.0):
     f = Activation('elu')(f)
     f = MaxPooling2D(pool_size=(2, 2))(f)
 
-
     # f = Dropout(0.5)(f)
 
     f = Flatten()(f)
@@ -227,14 +250,9 @@ def create_model_conv4(resize_factor = 1.0):
     # f = Dropout(0.5)(f)
     f = Activation('elu')(f)
 
-    # Fully Connected 2
-    # f = Dense(128)(f)
-    # f = Activation('tanh')(f)
-
     # f = Dropout(0.5)(f)
 
     b = Dense(1)(f)
-    # b = Activation('sigmoid')(f)
     model = Model(input=a, output=b)
     return model
 
@@ -249,6 +267,7 @@ def create_model_conv5(resize_factor = 1.0, crop_bottom = None):
     hh = int(hh // resize_factor)
     ww = int(w // resize_factor)
 
+    # Make it square
     hh = ww
 
     print('model hh = ', hh)
@@ -259,10 +278,6 @@ def create_model_conv5(resize_factor = 1.0, crop_bottom = None):
     print('model dropout = ', dropout)
 
     a = Input(shape=(hh, ww, ch))
-
-    # f = Convolution2D(3, 1, 1,
-    #                   border_mode='valid',
-    #                   subsample=(1, 1))(a)
 
     # Convolution 1
     f = Convolution2D(32, 4, 4,
@@ -287,15 +302,6 @@ def create_model_conv5(resize_factor = 1.0, crop_bottom = None):
     f = Activation('elu')(f)
     f = MaxPooling2D(pool_size=(2, 2))(f)
 
-    # Convolution 4
-    # f = Convolution2D(96, 3, 3,
-    #                       border_mode='valid',
-    #                       subsample=(1, 1))(f)
-    # f = Activation('elu')(f)
-    # f = MaxPooling2D(pool_size=(2, 2))(f)
-
-
-
     f = Dropout(dropout)(f)
 
     f = Flatten()(f)
@@ -310,18 +316,11 @@ def create_model_conv5(resize_factor = 1.0, crop_bottom = None):
     # f = Dropout(dropout)(f)
     f = Activation('elu')(f)
 
-    # Fully Connected 2
-    # f = Dense(128)(f)
-    # f = Activation('tanh')(f)
-
     # f = Dropout(0.5)(f)
 
     b = Dense(1)(f)
-    # b = Activation('sigmoid')(f)
     model = Model(input=a, output=b)
     return model
-
-
 
 # Created model for linear regression
 def create_model(model_type = 'cnn', resize_factor = 1.0, crop_bottom = None):
