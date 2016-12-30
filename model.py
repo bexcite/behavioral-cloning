@@ -174,10 +174,10 @@ def create_model_conv3(resize_factor = 1.0, crop_bottom = None):
     f = Convolution2D(64, 5, 5,
                           border_mode='same',
                           subsample = (2, 2))(f)
-
+    f = Activation('elu')(f)
     f = Flatten()(f)
     f = Dropout(0.5)(f)
-    f = Activation('elu')(f)
+
 
     # Fully Connected 1
     f = Dense(512)(f)

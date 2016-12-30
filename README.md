@@ -71,11 +71,35 @@ The final result was achieved on a combined dataset of Udacity provided `data` a
 Total number of combined dataset was ~65k frames (including left and right images) and after augmentation the total number of training dataset was ~126k frames.
 
 ## Model
-Successful model includes two convolutional layers with subsampling (2,2), on convolutional layer with max pooling (2,2), and two fully connected layers with a corresponding sizes of 512 and 654 neurons. Dropout was applied after each convolution layer and after first fully connected.
+Successful model (cnn5) includes two convolutional layers with subsampling (2,2), on convolutional layer with max pooling (2,2), and two fully connected layers with a corresponding sizes of 512 and 654 neurons. Dropout was applied after each convolution layer and after first fully connected.
+
+![CNN5 Architecture](result/cnn5_arc.png)
 
 Model summary stored in a file [result/model_cnn5.txt](result/model_cnn5.txt) just for reference.
 
+Total number of params ~717k and the file size of trained weights is 8.6 Mb.
+
 ![Model CNN5](result/model_cnn5_screen.png)
+
+### Input image size
+The output image from the simulator 160x320x3 was scaled down to 40x40x3 which helps reduce the total number of parameters and lower the demand for computation.
+
+As a result all experiments and final model training was accomplished on MacBook Pro 13' with a training time about 15 minutes per epoch (training + augmentation).
+
+### Activation RELU vs ELU
+Early experiments with RELU activation layers showed no sign of any learning and model struggled to predict the correct results.
+
+I think this is due to the need to predict a continuous steering value angle between -1.0 and 1.0 and RELU activation function drops everything below zero.
+
+Changing RELU to any function that keeps information in negative values helps model make correct prediction. I've tried sigmoid, tanh and ELU with the later showed the best result on my data and network architecture.
+
+### Other params
+First convolution layer was selected with kernel size 4x4 and strides 2x2 because an input image was resized to 40x40 and it looks like a reasonable size to keep the all information.
+
+I've also tested 8x8 with strides 4x4 and 5x5 with strides 2x2 for the first convolutional layer and still get the best results with 4x4 and strides 2x2. However, when I tested on a full image as an input convolution 8x8 with strides 4x4 works better for the first convolution layer.
+
+Dropout is essential for the model to generalize for the new images that came from a simulator. But with a vast number of augmented images dropout could be lowered from 0.5 to about 0.1 which showed better results.
+
 
 ## TODO and possible improvements:
 A lot of things could be improved here:
