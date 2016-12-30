@@ -8,6 +8,10 @@ python video.py --dataset dataset/folder/ --output movie.mp4
 ```
 Video helps if you need to know the frame numbers that you want to cut from data (see [jerky_utils](jerky_utils.py) and `--remove_jerky` params)
 
+Example video (shown as a gif):
+
+![Example of generated video ](result/movie-test-turns.gif)
+
 ## Train a model
 Different models can be trained with different parameters.
 
@@ -18,6 +22,7 @@ python train_model.py --dataset ../../../sdc/behavioral-cloning/data --model cnn
 Example of training cnn5 model (`--model cnn5`), using 2% of all data for validation and test sets (`--validation_split 0.02`), with batch size of 20 (`--batch_size 20`), removing bad part tracks with unappropriate driving (`--remove_jerky` flag), for 25 epochs(`--nb_epoch 25`), with learning rate 0.001 `--lr 0.001`, resizing input image by factor of 8 (`--resize_factor 8.0`), using left and right images (`--left_right`) and turning on augmentation with the 100% chance per each image from training dataset (`--augment 1.0`).
 
 The result of the above command will be stored to: `checkpoints/` directory for weights by epoch, `graphs/` directory for graphs of prediction on hand crafted datasets with two most difficult turns and a corresponding RMSE, plus part prediction from test set.
+
 
 ## Run model on a simulator
 By default the model is stored to `model.json` and final trained weights is stored to `model.h5` which can be used later for simulation with `drive.py` as:
@@ -32,12 +37,18 @@ During the training script evaluates the model on test dataset and drawing predi
 Such graph was proved to be the best indicator of the model performance before actual testing on the simulator.
 
 ## Preprocessing
-Preprocessing pipeline includes image resizing and normalization. There also a method for cropping bottom part of the image to remove a car but it wasn't used in final trining.
+Preprocessing pipeline includes image resizing and normalization. There also a method for cropping bottom part of the image to remove a car but it wasn't used in final training.
+
+Examples of preprocessed and augmented frames size 40x40:
+
+![Preprocessed and Augmented frames](result/preprocessed_with_augment.png)
 
 ## Augmentation
 Augmentation was proved critical for making model work on a given dataset and my ability to generate new data.
 
-One of the four different functions was applied with random params: 1) Noise, 2) Gaussian Filter, 3) Brightness 4) Translation (horizontal/vertical shifts)
+One of the four different functions was applied with random params: 1) Noise, 2) Gaussian Filter, 3) Brightness 4) Translation (horizontal/vertical shifts).
+
+Examples of augmented images see above in _Preprocessing_ section.
 
 
 ## Result
