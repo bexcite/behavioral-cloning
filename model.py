@@ -257,7 +257,9 @@ def create_model_conv4(resize_factor = 1.0, crop_bottom = None):
     return model
 
 def create_model_conv5(resize_factor = 1.0, crop_bottom = None):
-    # ala comma.ai model
+    '''
+      The best working model
+    '''
 
     if crop_bottom:
       hh = h - crop_bottom
