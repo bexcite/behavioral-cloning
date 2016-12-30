@@ -86,12 +86,12 @@ def send_control(steering_angle, throttle):
 
 
 if __name__ == '__main__':
-  
+
     parser = argparse.ArgumentParser(description='Remote Driving')
     parser.add_argument('model', type=str,
         help='Path to model definition json. Model weights should be on the same path or specify --restore_weights.')
     parser.add_argument('--restore_weights', type=str, help='Restore weights from checkpoint')
-    parser.add_argument('--resize_factor', type=float, default=1, help='Resize image factor - default 1.0')
+    parser.add_argument('--resize_factor', type=float, default=8, help='Resize image factor - default 1.0')
     parser.add_argument('--crop_bottom', type=int, default=0, help='Crop bottom. to remove car image')
     args = parser.parse_args()
 
