@@ -17,7 +17,9 @@ Different models can be trained with different parameters.
 
 Example of a command to train a model:
 ```
-python train_model.py --dataset ../../../sdc/behavioral-cloning/data --model cnn5 --validation_split 0.02 --batch_size=20 --remove_jerky --nb_epoch 25 --lr 0.001 --resize_factor 8.0 --left_right --augment 1.0 --small_prob_tr 1.0
+python train_model.py --dataset ../../../sdc/behavioral-cloning/data --model cnn5 \
+--validation_split 0.02 --batch_size=20 --remove_jerky --nb_epoch 25 --lr 0.001 \
+--resize_factor 8.0 --left_right --augment 1.0 --small_prob_tr 1.0
 ```
 Example of training cnn5 model (`--model cnn5`), using 2% of all data for validation and test sets (`--validation_split 0.02`), with batch size of 20 (`--batch_size 20`), removing bad part tracks with unappropriate driving (`--remove_jerky` flag), for 25 epochs(`--nb_epoch 25`), with learning rate 0.001 `--lr 0.001`, resizing input image by factor of 8 (`--resize_factor 8.0`), using left and right images (`--left_right`) and turning on augmentation with the 100% chance per each image from training dataset (`--augment 1.0`).
 
