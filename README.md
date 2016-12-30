@@ -45,6 +45,7 @@ The critical part for training a successful model was augmentation technique and
 
 Video:
 
+[![Driving Result](https://img.youtube.com/vi/O51z_PW8jQE/0.jpg)](https://www.youtube.com/watch?v=O51z_PW8jQE)
 
 Run simulation using a resulting model and weights:
 ```
