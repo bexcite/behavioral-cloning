@@ -86,9 +86,7 @@ def send_control(steering_angle, throttle):
 
 
 if __name__ == '__main__':
-    print("Hello ")
-
-
+  
     parser = argparse.ArgumentParser(description='Remote Driving')
     parser.add_argument('model', type=str,
         help='Path to model definition json. Model weights should be on the same path or specify --restore_weights.')
