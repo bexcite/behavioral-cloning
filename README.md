@@ -71,7 +71,9 @@ Total number of combined dataset was ~65k frames (including left and right image
 ## Model
 Successful model includes two convolutional layers with subsampling (2,2), on convolutional layer with max pooling (2,2), and two fully connected layers with a corresponding sizes of 512 and 654 neurons. Dropout was applied after each convolution layer and after first fully connected.
 
-Model summary stored in a file [result/model_cnn5.txt](result/model_cnn5.txt)
+Model summary stored in a file [result/model_cnn5.txt](result/model_cnn5.txt) just for reference.
+
+![Model CNN5](result/model_cnn5_screen.png)
 
 ## TODO and possible improvements:
 A lot of things could be improved here:
